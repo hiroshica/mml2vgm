@@ -32,6 +32,7 @@ namespace Core
         public const string MODEBEFORESEND = "MODEBEFORESEND";
         public const string ENABLEGGSTEREODCSG = "ENABLEGGSTEREODCSG";
         public const string USEPCMCACHE = "USEPCMCACHE";
+        public const string USEPLAYHG = "USEPLAYHG";
 
         readonly public static string[] IDName = new string[] { PRIMARY, SECONDARY };
         public const long DEFAULT_TEMPO = 120L;
@@ -69,6 +70,7 @@ namespace Core
         public int modeBeforeSend = 0;
         public bool enableGGStereoDCSG = false;
         public bool usePcmCache = false;
+        public bool m_ComplePlayHG = false;
 
 
         public void AddInformation(List<Line> lstLine, Dictionary<enmChipType, ClsChip[]> chips)
@@ -122,6 +124,7 @@ namespace Core
                     else if (wrd == MODEBEFORESEND) SetModeBeforeSend(val);
                     else if (wrd == ENABLEGGSTEREODCSG) SetEnableGGStereoDCSG(val);
                     else if (wrd == USEPCMCACHE) SetUsePcmCache(val);
+                    else if (wrd == USEPLAYHG) SetUsePlayHG(val);
                 }
                 catch
                 {
@@ -163,6 +166,7 @@ namespace Core
                     break;
             }
         }
+
 
         private void SetXgmBaseFrame(string val)
         {
@@ -341,6 +345,19 @@ namespace Core
                 case "ALL":
                 case "TAKUMI":
                     modeBeforeSend = 2;
+                    break;
+            }
+        }
+
+        private void SetUsePlayHG(string val)
+        {
+            switch (val.ToUpper())
+            {
+                case "TRUE":
+                    m_ComplePlayHG = true;
+                    break;
+                default:
+                    m_ComplePlayHG = false;
                     break;
             }
         }
