@@ -7,7 +7,7 @@ using System.Linq;
 
 namespace Core
 {
-    public class MMLAnalyze
+    public partial class MMLAnalyze
     {
 
         public Dictionary<string, List<MML>> mmlData = new Dictionary<string, List<MML>>();
@@ -90,7 +90,14 @@ namespace Core
                 else
                 {
                     //lineNumber = pw.getLineNumber();
-                    Commander(pw, page, cmd);
+                    if (!info.m_ComplePlayHG)
+                    {
+                        Commander(pw, page, cmd);
+                    }
+                    else
+                    {
+                        CommanderPHG(pw, page, cmd);
+                    }
                 }
             }
         }
@@ -2295,7 +2302,7 @@ namespace Core
         // 9... ,c            コンマの後が音符ならばToneDoubler
         //                    数値の場合はベロシティ
         //10... :             和音指定(ウエイトキャンセル)
-        private void CmdNote(partWork pw, partPage page, char cmd, MML mml)
+        private void CmdNote(partWork pw, partPage page, char cmd, MML mml, bool upperflag = false)
         {
             pw.incPos(page);
             mml.line.Lp.length = 1;
@@ -2317,6 +2324,10 @@ namespace Core
                     shift--;
                 pw.incPos(page);
                 mml.line.Lp.length++;
+            }
+            if (upperflag)
+            {
+                shift += 12;
             }
             note.shift = shift;
 
