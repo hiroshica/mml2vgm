@@ -110,15 +110,19 @@ namespace Core
                     pw.incPos(page);
                     break;
                 case '!': // CompileSkip
-                    log.Write("CompileSkip");
-                    page.dataEnd = true;
-                    mml.type = enmMMLType.CompileSkip;
-                    mml.args = new List<object>();
-                    pw.incPos(page);
                     if (pw.getChar(page) == '!')
+                    {
+                        log.Write("CompileSkip");
+                        page.dataEnd = true;
+                        mml.type = enmMMLType.CompileSkip;
+                        mml.args = new List<object>();
                         mml.args.Add("compileEnd");
+                    }
                     else
-                        mml.args.Add("partEnd");
+                    {
+                        // acsent
+                    }
+                    pw.incPos(page);
                     break;
                 case '@': // instrument
                     log.Write("instrument");
@@ -132,23 +136,23 @@ namespace Core
                     log.Write("octave Down");
                     CmdOctaveDown(pw, page, mml);
                     break;
-                case ')': // volume Up
+                case ']': // volume Up
                     log.Write(" volume Up");
-                    CmdVolumeUp(pw, page, mml);
+                    CmdVolumeUp(pw, page, mml,true);
                     break;
-                case '(': // volume Down
+                case '[': // volume Down
                     log.Write("volume Down");
-                    CmdVolumeDown(pw, page, mml);
+                    CmdVolumeDown(pw, page, mml,true);
                     break;
                 case '#': // length(clock)
                     log.Write("length(clock)");
                     CmdClockLength(pw, page, mml);
                     break;
-                case '[': // repeat
+                case '(': // repeat
                     log.Write("repeat [");
                     CmdRepeatStart(pw, page, mml);
                     break;
-                case ']': // repeat
+                case ')': // repeat
                     log.Write("repeat ]");
                     CmdRepeatEnd(pw, page, mml);
                     break;

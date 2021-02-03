@@ -694,7 +694,7 @@ namespace Core
             mml.args = null;
         }
 
-        private void CmdVolumeUp(partWork pw, partPage page, MML mml)
+        private void CmdVolumeUp(partWork pw, partPage page, MML mml,bool maseflag = false)
         {
             int n;
             pw.incPos(page);
@@ -702,9 +702,16 @@ namespace Core
             {
                 mml.type = enmMMLType.VolumeUp;
                 mml.args = new List<object>();
-                mml.args.Add(null);
-                //msgBox.setErrMsg(msg.get("E05006"), mml.line.Lp);
-                return;
+                if (!maseflag)
+                {
+                    mml.args.Add(null);
+                    //msgBox.setErrMsg(msg.get("E05006"), mml.line.Lp);
+                    return;
+                }
+                else
+                {
+                    n = page.MaxVolume / 15;
+                }
             }
             n = Common.CheckRange(n, 1, page.MaxVolume);
             mml.type = enmMMLType.VolumeUp;
@@ -713,7 +720,7 @@ namespace Core
 
         }
 
-        private void CmdVolumeDown(partWork pw, partPage page, MML mml)
+        private void CmdVolumeDown(partWork pw, partPage page, MML mml, bool maseflag = false)
         {
             pw.incPos(page);
             if (!pw.getNum(page, out int n))
@@ -721,9 +728,16 @@ namespace Core
                 mml.type = enmMMLType.VolumeDown;
                 mml.args = new List<object>();
                 mml.args.Add(null);
-                return;
-                //msgBox.setErrMsg(msg.get("E05007"), mml.line.Lp);
-                //n = 10;
+                if (!maseflag)
+                {
+                    return;
+                    //msgBox.setErrMsg(msg.get("E05007"), mml.line.Lp);
+                    //n = 10;
+                }
+                else
+                {
+                    n = page.MaxVolume / 15;
+                }
             }
             n = Common.CheckRange(n, 1, page.MaxVolume);
             mml.type = enmMMLType.VolumeDown;
