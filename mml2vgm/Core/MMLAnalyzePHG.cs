@@ -14,7 +14,15 @@ namespace Core
             MML mml = new MML();
             mml.line = pw.getLine(page);
             mml.column = page.pos.col + 1;// pw.getPos();
-
+            if(pw.m_LatestVolume < 0)
+            {
+                pw.m_LatestVolume = page.MaxVolume;
+            }
+            if (pw.m_AccentVolume < 0)
+            {
+                pw.m_AccentVolume = page.MaxVolume;
+                pw.m_AccentOn = false;
+            }
 
             //エイリアスのスタックが変化したかチェック,更新する
 
@@ -110,6 +118,7 @@ namespace Core
                     pw.incPos(page);
                     break;
                 case '!': // CompileSkip
+                    pw.incPos(page);
                     if (pw.getChar(page) == '!')
                     {
                         log.Write("CompileSkip");
@@ -120,9 +129,8 @@ namespace Core
                     }
                     else
                     {
-                        // acsent
+                        CmdAccentVolumePHG(pw,page,mml);
                     }
-                    pw.incPos(page);
                     break;
                 case '@': // instrument
                     log.Write("instrument");
@@ -138,11 +146,11 @@ namespace Core
                     break;
                 case ']': // volume Up
                     log.Write(" volume Up");
-                    CmdVolumeUp(pw, page, mml,true);
+                    CmdVolumeUpPHG(pw, page, mml);
                     break;
                 case '[': // volume Down
                     log.Write("volume Down");
-                    CmdVolumeDown(pw, page, mml,true);
+                    CmdVolumeDownPHG(pw, page, mml);
                     break;
                 case '#': // length(clock)
                     log.Write("length(clock)");
@@ -268,11 +276,11 @@ namespace Core
                     break;
                 case 'v': // volume
                     log.Write("volume");
-                    CmdVolume(pw, page, mml);
+                    CmdVolumePHG(pw, page, mml);
                     break;
                 case 'V': // totalVolume(Adpcm-A / Rhythm) or volume Arpeggio
                     log.Write("totalVolume(Adpcm-A / Rhythm) or volume Arpeggio");
-                    CmdTotalVolumeOrArpeggio(pw, page, mml);
+                    CmdTotalVolumeOrArpeggioPHG(pw, page, mml);
                     break;
                 case 'w': // noise
                     log.Write("noise");
@@ -300,7 +308,7 @@ namespace Core
                 case 'a':
                 case 'b':
                     log.Write(string.Format("note {0}", cmd));
-                    CmdNote(pw, page, cmd, mml,true);
+                    CmdNote(pw, page, cmd, mml, true);
                     break;
                 case 'r':
                     log.Write("rest");
@@ -334,8 +342,31 @@ namespace Core
                 mmlData.Add(page.PartName, new List<MML>());//この処理無意味っぽい(mmlData使ってない)
             }//この処理無意味っぽい
 
+            if (pw.m_AccentOn && mml.type == enmMMLType.Note)
+            {
+                MML lmml = new MML();
+                lmml.line = pw.getLine(page);
+                lmml.column = page.pos.col + 1;// pw.getPos();
 
-            page.mmlData.Add(mml);
+                lmml.type = enmMMLType.TotalVolume;
+                lmml.args = new List<object>();
+                lmml.args.Add(pw.m_AccentVolume);
+                page.mmlData.Add(lmml);
+                page.mmlData.Add(mml);
+
+                lmml = new MML();
+                lmml.line = pw.getLine(page);
+                lmml.column = page.pos.col + 1;// pw.getPos();
+
+                lmml.type = enmMMLType.TotalVolume;
+                lmml.args = new List<object>();
+                lmml.args.Add(pw.m_LatestVolume);
+                page.mmlData.Add(lmml);
+                pw.m_AccentOn = false;
+            }
+            else {
+                page.mmlData.Add(mml);
+            }
 
 
             if (swToneDoubler)
@@ -348,6 +379,109 @@ namespace Core
                 swToneDoubler = false;
             }
         }
+
+        private void CmdVolumePHG(partWork pw, partPage page, MML mml)
+        {
+            pw.incPos(page);
+            mml.type = enmMMLType.Volume;
+            if (pw.getNum(page, out int n))
+            {
+                n = Common.CheckRange(n, 0, page.MaxVolume);
+                mml.args = new List<object>();
+                mml.args.Add(n);
+                pw.m_LatestVolume = n;
+            }
+            else
+            {
+                mml.args = null;
+                pw.m_LatestVolume = page.MaxVolume;
+            }
+        }
+        private void CmdAccentVolumePHG(partWork pw, partPage page, MML mml)
+        {
+            if (pw.getNum(page, out int n))
+            {
+                n = Common.CheckRange(n, 0, page.MaxVolume);
+                pw.m_AccentVolume = n;
+            }
+            else
+            {
+                pw.m_AccentVolume = page.MaxVolume;
+            }
+            pw.m_AccentOn = true;
+        }
+
+
+        private void CmdTotalVolumeOrArpeggioPHG(partWork pw, partPage page, MML mml)
+        {
+            pw.incPos(page);
+            if (pw.getChar(page) != 'P') //vP
+            {
+                CmdTotalVolumePHG(pw, page, mml);
+                return;
+            }
+
+            CmdVArpeggio(pw, page, mml);
+        }
+
+        private void CmdTotalVolumePHG(partWork pw, partPage page, MML mml)
+        {
+            int n;
+            mml.type = enmMMLType.TotalVolume;
+            mml.args = new List<object>();
+
+            if (!pw.getNum(page, out n))
+            {
+                msgBox.setErrMsg(msg.get("E05004"), mml.line.Lp);
+                n = 0;
+            }
+            mml.args.Add(n);
+            pw.m_LatestVolume = n;
+
+            pw.skipTabSpace(page);
+
+            if (pw.getChar(page) == ',')
+            {
+                pw.incPos(page);
+                if (!pw.getNum(page, out n))
+                {
+                    msgBox.setErrMsg(msg.get("E05004"), mml.line.Lp);
+                    n = 0;
+                }
+                mml.args.Add(n);
+            }
+        }
+
+
+        private void CmdVolumeUpPHG(partWork pw, partPage page, MML mml)
+        {
+            int n;
+            pw.incPos(page);
+            if (!pw.getNum(page, out n))
+            {
+                n = page.MaxVolume/15;
+            }
+            pw.m_LatestVolume = Common.CheckRange(pw.m_LatestVolume+ n, 0, page.MaxVolume);
+            mml.type = enmMMLType.TotalVolume;
+            mml.args = new List<object>();
+            mml.args.Add(pw.m_LatestVolume);
+        }
+
+        private void CmdVolumeDownPHG(partWork pw, partPage page, MML mml)
+        {
+            int n;
+            pw.incPos(page);
+            if (!pw.getNum(page, out n))
+            {
+                n = page.MaxVolume / 15;
+            }
+            pw.m_LatestVolume = Common.CheckRange(pw.m_LatestVolume - n, 0, page.MaxVolume);
+            mml.type = enmMMLType.TotalVolume;
+            mml.args = new List<object>();
+            mml.args.Add(pw.m_LatestVolume);
+        }
+
+
 
     }
 }

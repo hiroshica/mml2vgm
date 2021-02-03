@@ -733,6 +733,10 @@ namespace Core
         {
             spg.sharedPageInitializer();
         }
+
+        public int m_LatestVolume = -1;
+        public int m_AccentVolume = -1;
+        public bool m_AccentOn = false;
     }
 
     public class clsPos
