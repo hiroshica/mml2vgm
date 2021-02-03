@@ -9,7 +9,6 @@ namespace Core
 {
     public partial class MMLAnalyze
     {
-        bool upperflag = false;
         private void CommanderPHG(partWork pw, partPage page, char cmd)
         {
             MML mml = new MML();
@@ -109,7 +108,6 @@ namespace Core
                 case ' ':
                 case '\t':
                     pw.incPos(page);
-                    upperflag = false;
                     break;
                 case '!': // CompileSkip
                     log.Write("CompileSkip");
@@ -121,214 +119,172 @@ namespace Core
                         mml.args.Add("compileEnd");
                     else
                         mml.args.Add("partEnd");
-                    upperflag = false;
                     break;
                 case '@': // instrument
                     log.Write("instrument");
                     CmdInstrument(pw, page, mml);
-                    upperflag = false;
                     break;
                 case '>': // octave Up
                     log.Write("octave Up");
                     CmdOctaveUp(pw, page, mml);
-                    upperflag = false;
                     break;
                 case '<': // octave Down
                     log.Write("octave Down");
                     CmdOctaveDown(pw, page, mml);
-                    upperflag = false;
                     break;
                 case ')': // volume Up
                     log.Write(" volume Up");
                     CmdVolumeUp(pw, page, mml);
-                    upperflag = false;
                     break;
                 case '(': // volume Down
                     log.Write("volume Down");
                     CmdVolumeDown(pw, page, mml);
-                    upperflag = false;
                     break;
                 case '#': // length(clock)
                     log.Write("length(clock)");
                     CmdClockLength(pw, page, mml);
-                    upperflag = false;
                     break;
                 case '[': // repeat
                     log.Write("repeat [");
                     CmdRepeatStart(pw, page, mml);
-                    upperflag = false;
                     break;
                 case ']': // repeat
                     log.Write("repeat ]");
                     CmdRepeatEnd(pw, page, mml);
-                    upperflag = false;
                     break;
                 case '{': // renpu
                     log.Write("renpu {");
                     CmdRenpuStart(pw, page, mml);
-                    upperflag = false;
                     break;
                 case '}': // renpu
                     log.Write("renpu }");
                     CmdRenpuEnd(pw, page, mml);
-                    upperflag = false;
                     break;
                 case '/': // repeat
                     log.Write("repeat /");
                     CmdRepeatExit(pw, page, mml);
-                    upperflag = false;
                     break;
                 case '"':
                     log.Write("lylic");
                     CmdLyric(pw, page, mml);
-                    upperflag = false;
                     break;
                 case '_':
                     log.Write("bend");
                     CmdBend(pw, page, mml);
-                    upperflag = false;
                     break;
                 case '&':
                     log.Write("tie");
                     CmdTie(pw, page, mml);
-                    upperflag = false;
                     break;
                 case '^':
-                    log.Write("tie plus clock");
-                    CmdTiePC(pw, page, mml);
-                    upperflag = false;
+                    log.Write("upper note");
+                    pw.incPos(page);
                     break;
                 case '~':
                     log.Write("tie minus clock");
                     CmdTieMC(pw, page, mml);
-                    upperflag = false;
                     break;
 
 
                 case 'A': // Address shift
                     log.Write("Address shift / Arpeggio");
                     CmdAddressShiftArpeggio(pw, page, mml);
-                    upperflag = false;
                     break;
                 case 'C': //MIDI Ch / Command Arpeggio
                     log.Write("MIDI Ch / Command Arpeggio");
                     CmdMIDIChCommandArpeggio(pw, page, mml);
-                    upperflag = false;
                     break;
                 case 'D': // Detune / ダイレクトモード
                     log.Write("Detune / DirectMode");
                     CmdDetuneDirectMode(pw, page, mml);
-                    upperflag = false;
                     break;
                 case 'E': // envelope / extendChannel
                     log.Write("envelope / extendChannel");
                     CmdE(pw, page, mml);
-                    upperflag = false;
                     break;
                 case 'J': // Jump point
                     log.Write("Jump point");
                     CmdJump(pw, page, mml);
-                    upperflag = false;
                     break;
                 case 'K': // key shift
                     log.Write("key shift");
                     CmdKeyShift(pw, page, mml);
-                    upperflag = false;
                     break;
                 case 'l': // length
                     log.Write("length");
                     CmdLength(pw, page, mml);
-                    upperflag = false;
                     break;
                 case 'L': // loop point
                     log.Write(" loop point");
                     CmdLoop(pw, page, mml);
-                    upperflag = false;
                     break;
                 case 'm': // pcm mode / pcm mapMode Sw
                     log.Write("pcm mode / pcm mapMode Sw");
                     CmdMode(pw, page, mml);
-                    upperflag = false;
                     break;
                 case 'M': // lfo
                     log.Write("lfo");
                     CmdLfo(pw, page, mml);
-                    upperflag = false;
                     break;
                 case 'o': // octave
                     log.Write("octave");
                     CmdOctave(pw, page, mml);
-                    upperflag = false;
                     break;
                 case 'p': // pan
                     log.Write(" pan");
                     CmdPan(pw, page, mml);
-                    upperflag = false;
                     break;
                 case 'P': // noise or tone mixer
                     log.Write("noise or tone mixer or phase reset");
                     CmdMixer(pw, page, mml);
-                    upperflag = false;
                     break;
                 case 'q': // gatetime
                     log.Write(" gatetime q");
                     CmdGatetime(pw, page, mml);
-                    upperflag = false;
                     break;
                 case 'Q': // gatetime
                     log.Write("gatetime Q");
                     CmdGatetime2(pw, page, mml);
-                    upperflag = false;
                     break;
                 case 's': // sus ON/OFF
                     log.Write("sus ON/OFF");
                     CmdSusOnOff(pw, page, mml);
-                    upperflag = false;
                     break;
                 case 'S': // lfo switch or system effect
                     log.Write(" lfo switch or system effect");
                     CmdLfoSwitchOrSystemEffect(pw, page, mml);
-                    upperflag = false;
                     break;
                 case 'T': // tempo
                     log.Write(" tempo");
                     CmdTempo(pw, page, mml);
-                    upperflag = false;
                     break;
                 case 'U': // velocity
                     log.Write("velocity");
                     CmdVelocity(pw, page, mml);
-                    upperflag = false;
                     break;
                 case 'v': // volume
                     log.Write("volume");
                     CmdVolume(pw, page, mml);
-                    upperflag = false;
                     break;
                 case 'V': // totalVolume(Adpcm-A / Rhythm) or volume Arpeggio
                     log.Write("totalVolume(Adpcm-A / Rhythm) or volume Arpeggio");
                     CmdTotalVolumeOrArpeggio(pw, page, mml);
-                    upperflag = false;
                     break;
                 case 'w': // noise
                     log.Write("noise");
                     CmdNoise(pw, page, mml);
-                    upperflag = false;
                     break;
                 case 'y': // y
                     log.Write(" y");
                     CmdY(pw, page, mml);
-                    upperflag = false;
                     break;
                 case 'X': // Effect
                     log.Write(" Effect");
                     CmdEffect(pw, page, mml);
-                    upperflag = false;
                     break;
                 case 'F'://Forced Fnum
                     log.Write("Forced Fnum");
                     CmdForcedFnum(pw, page, mml);
-                    upperflag = false;
                     break;
 
 
@@ -340,34 +296,28 @@ namespace Core
                 case 'a':
                 case 'b':
                     log.Write(string.Format("note {0}", cmd));
-                    CmdNote(pw, page, cmd, mml, upperflag);
-                    upperflag = false;
+                    CmdNote(pw, page, cmd, mml,true);
                     break;
                 case 'r':
                     log.Write("rest");
                     CmdRest(pw, page, mml);
-                    upperflag = false;
                     break;
                 case 'R':
                     log.Write("restNoWork");
                     CmdRestNoWork(pw, page, mml);
-                    upperflag = false;
                     break;
                 case ';':
                     log.Write("comment out");
                     CmdCommentout(pw, page, mml);
-                    upperflag = false;
                     break;
                 case '*':
                     log.Write("synchronous");
                     CmdSynchronous(pw, page, mml);
-                    upperflag = false;
                     break;
 
                 default:
                     msgBox.setErrMsg(string.Format(msg.get("E05000"), cmd), mml.line.Lp);
                     pw.incPos(page);
-                    upperflag = false;
                     break;
             }
 

@@ -2304,6 +2304,18 @@ namespace Core
         //10... :             和音指定(ウエイトキャンセル)
         private void CmdNote(partWork pw, partPage page, char cmd, MML mml, bool upperflag = false)
         {
+            int shift = 0;
+            if (upperflag)
+            {
+                pw.decPos(page);
+                if(pw.getChar(page) == '^')
+                {
+                    shift += 12;
+                }
+                pw.incPos(page);
+            }
+
+
             pw.incPos(page);
             mml.line.Lp.length = 1;
             mml.type = enmMMLType.Note;
@@ -2315,7 +2327,6 @@ namespace Core
             pw.skipTabSpace(page);
 
             //+ -の解析
-            int shift = 0;
             while (pw.getChar(page) == '+' || pw.getChar(page) == '-')
             {
                 if (pw.getChar(page) == '+')
@@ -2324,10 +2335,6 @@ namespace Core
                     shift--;
                 pw.incPos(page);
                 mml.line.Lp.length++;
-            }
-            if (upperflag)
-            {
-                shift += 12;
             }
             note.shift = shift;
 
@@ -2381,51 +2388,99 @@ namespace Core
 
             //& ^ ~ コマンドの解析
             int len = 0;
-            while (pw.getChar(page) == '&' || pw.getChar(page) == '^' || pw.getChar(page) == '~')
+            if (!upperflag)
             {
-                char ch = pw.getChar(page);
-                int oldPos = pw.getPos(page);
-                pw.incPos(page);
-                if (ch == '&')
+                while (pw.getChar(page) == '&' || pw.getChar(page) == '^' || pw.getChar(page) == '~')
                 {
-                    if (pw.getNumNoteLength(page, out n, out directFlg))
+                    char ch = pw.getChar(page);
+                    int oldPos = pw.getPos(page);
+                    pw.incPos(page);
+                    if (ch == '&')
                     {
-                        if (!directFlg)
+                        if (pw.getNumNoteLength(page, out n, out directFlg))
                         {
-                            if ((int)info.clockCount % n != 0)
+                            if (!directFlg)
                             {
-                                msgBox.setWrnMsg(string.Format(msg.get("E05023")
-                                    , n), mml.line.Lp);
+                                if ((int)info.clockCount % n != 0)
+                                {
+                                    msgBox.setWrnMsg(string.Format(msg.get("E05023")
+                                        , n), mml.line.Lp);
+                                }
+                                n = (int)info.clockCount / n;
                             }
-                            n = (int)info.clockCount / n;
+                            else
+                            {
+                                n = Common.CheckRange(n, 1, 65535);
+                            }
                         }
                         else
                         {
-                            n = Common.CheckRange(n, 1, 65535);
+                            //数値ではなかった
+                            int nowPos = pw.getPos(page);
+                            pw.decPos(page, nowPos - oldPos);
+                            break;
                         }
+                        n += CountFuten(pw, page, mml, n);
+
                     }
-                    else
+                    else if (ch == '^')
                     {
-                        //数値ではなかった
-                        int nowPos = pw.getPos(page);
-                        pw.decPos(page, nowPos - oldPos);
-                        break;
+                        GetLength(pw, page, mml, out n);
                     }
-                    n += CountFuten(pw, page, mml, n);
+                    else if (ch == '~')
+                    {
+                        GetLength(pw, page, mml, out n);
+                        n = -n;
+                    }
 
+                    len += n;
                 }
-                else if (ch == '^')
-                {
-                    GetLength(pw, page, mml, out n);
-                }
-                else if (ch == '~')
-                {
-                    GetLength(pw, page, mml, out n);
-                    n = -n;
-                }
-
-                len += n;
             }
+            else
+            {
+                while (pw.getChar(page) == '&' || pw.getChar(page) == '~')
+                {
+                    char ch = pw.getChar(page);
+                    int oldPos = pw.getPos(page);
+                    pw.incPos(page);
+                    if (ch == '&')
+                    {
+                        if (pw.getNumNoteLength(page, out n, out directFlg))
+                        {
+                            if (!directFlg)
+                            {
+                                if ((int)info.clockCount % n != 0)
+                                {
+                                    msgBox.setWrnMsg(string.Format(msg.get("E05023")
+                                        , n), mml.line.Lp);
+                                }
+                                n = (int)info.clockCount / n;
+                            }
+                            else
+                            {
+                                n = Common.CheckRange(n, 1, 65535);
+                            }
+                        }
+                        else
+                        {
+                            //数値ではなかった
+                            int nowPos = pw.getPos(page);
+                            pw.decPos(page, nowPos - oldPos);
+                            break;
+                        }
+                        n += CountFuten(pw, page, mml, n);
+
+                    }
+                    else if (ch == '~')
+                    {
+                        GetLength(pw, page, mml, out n);
+                        n = -n;
+                    }
+
+                    len += n;
+                }
+            }
+
 
             note.length += len;
             note.addLength = len;
