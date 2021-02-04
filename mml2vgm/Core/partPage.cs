@@ -567,7 +567,23 @@ namespace Core
         public int beforepcmBank = -1;
 
         public enmChannelType Type;
-        public int MaxVolume = 0;
+        public int m_MaxVolume = 0;
+
+        public int MaxVolume
+        {
+            get
+            {
+                return this.m_MaxVolume;
+            }
+            set
+            {
+                this.m_MaxVolume = value;
+                this.m_LatestVolume = value;
+                this.m_Accentvelocity = 127;
+                this.m_VolumeUDStep = value / 15;
+            }
+        }
+
         public int MaxExpression = 0;
         public byte[][] port = null;
 
@@ -641,6 +657,7 @@ namespace Core
         public partPage(partPage sharedPg)
         {
             this.spg = sharedPg;
+            this.m_AccentOn = false;
         }
 
         public void sharedPageInitializer()
@@ -655,6 +672,13 @@ namespace Core
             public int Gain = 0;
             public int Q = 0;
         }
+
+        public int m_VolumeUDStep = -1;
+        public int m_LatestVolume = -1;
+
+        public int m_Accentvelocity = -1;
+        public bool m_AccentOn = false;
+
     }
 
 }
