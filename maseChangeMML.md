@@ -2,7 +2,7 @@ Oh!FMで拡張されたMMLPlayHD/ED)のうち、MASEでサポートしていた�
 これらをMASE MMLと呼称します.
 
 曲情報定義部に以下の記述をするとMASE MMLモードに切り替わります
-	USEPLAYHG            = true
+	USEMASEMML            = true
 
 1) MASE MMLでは以下のコマンドが標準とは違います。それ以外は標準と同じものが使えます。
 

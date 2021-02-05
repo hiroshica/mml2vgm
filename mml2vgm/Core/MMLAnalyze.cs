@@ -90,7 +90,7 @@ namespace Core
                 else
                 {
                     //lineNumber = pw.getLineNumber();
-                    if (!info.m_ComplePlayHG)
+                    if (!info.m_CompleMaseMML)
                     {
                         Commander(pw, page, cmd);
                     }
