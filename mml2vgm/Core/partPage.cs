@@ -578,9 +578,7 @@ namespace Core
             set
             {
                 this.m_MaxVolume = value;
-                this.m_LatestVolumeL = value;
-                this.m_LatestVolumeR = value;
-                this.m_Accentvelocity = 127;
+                this.m_Accentvelocity = eMaxTotalVelocity;
                 this.m_VolumeUDStep = eMaxTotalVolume / 10;
             }
         }
@@ -679,10 +677,9 @@ namespace Core
         // mase 追加work
         //
         public const int eMaxTotalVolume = 1000;
+        public const int eMaxTotalVelocity = 1000;
         public bool m_MaseMode = false;
         public int m_VolumeUDStep = -1;
-        public int m_LatestVolumeL = -1;
-        public int m_LatestVolumeR = -1;
 
         public int m_Accentvelocity = -1;
         public bool m_AccentOn = false;

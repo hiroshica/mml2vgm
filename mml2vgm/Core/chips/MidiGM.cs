@@ -171,8 +171,10 @@ namespace Core
         {
             int n;
             n = (mml.args != null && mml.args.Count > 0) ? (int)mml.args[0] : page.latestVolume;
+            n = Common.CheckRange(n, 0, partPage.eMaxTotalVolume);
             page.latestVolume = n;
-            page.expression = Common.CheckRange(n, 0, page.MaxExpression);
+
+            page.expression =(int)(((double)n / partPage.eMaxTotalVolume)  * (double)page.MaxExpression);
 
             MML vmml = new MML();
             vmml.type = enmMMLType.Volume;
@@ -186,9 +188,11 @@ namespace Core
         public override void CmdVolumeUp(partPage page, MML mml)
         {
             int n = (int)mml.args[0];
-            n = Common.CheckRange(n, 1, page.MaxExpression);
-            page.expression += parent.info.volumeRev ? -n : n;
-            page.expression = Common.CheckRange(page.expression, 0, page.MaxExpression);
+            n = Common.CheckRange(n, 0, partPage.eMaxTotalVolume);
+            n = Common.CheckRange(page.latestVolume + n, 0, partPage.eMaxTotalVolume);
+            page.latestVolume = n;
+
+            page.expression = (int)(((double)n / partPage.eMaxTotalVolume) * (double)page.MaxExpression);
 
             MML vmml = new MML();
             vmml.type = enmMMLType.Volume;
@@ -201,9 +205,11 @@ namespace Core
         public override void CmdVolumeDown(partPage page, MML mml)
         {
             int n = (int)mml.args[0];
-            n = Common.CheckRange(n, 1, page.MaxExpression);
-            page.expression -= parent.info.volumeRev ? -n : n;
-            page.expression = Common.CheckRange(page.expression, 0, page.MaxExpression);
+            n = Common.CheckRange(n, 0, partPage.eMaxTotalVolume);
+            n = Common.CheckRange(page.latestVolume - n, 0, partPage.eMaxTotalVolume);
+            page.latestVolume = n;
+
+            page.expression = (int)(((double)n / partPage.eMaxTotalVolume) * (double)page.MaxExpression);
 
             MML vmml = new MML();
             vmml.type = enmMMLType.Volume;

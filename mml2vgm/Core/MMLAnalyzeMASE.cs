@@ -272,6 +272,9 @@ namespace Core
                     CmdVelocity(pw, page, mml);
                     break;
                 case 'v': // volume
+                    log.Write("volume/Expression");
+                    CmdVolumeMASE(pw, page, mml);
+                    break;
                 case 'V': // totalVolume(Adpcm-A / Rhythm) or volume Arpeggio
                     log.Write("totalVolume(Adpcm-A / Rhythm) or volume Arpeggio");
                     CmdTotalVolumeOrArpeggioMASE(pw, page, mml);
@@ -353,12 +356,27 @@ namespace Core
         {
             if (pw.getNum(page, out int n))
             {
-                n = Common.CheckRange(n, 0, 127);
+                n = Common.CheckRange(n, 0, partPage.eMaxTotalVelocity);
                 page.m_Accentvelocity = n;
             }
             page.m_AccentOn = true;
         }
 
+        private void CmdVolumeMASE(partWork pw, partPage page, MML mml)
+        {
+            pw.incPos(page);
+            mml.type = enmMMLType.Volume;
+            if (pw.getNum(page, out int n))
+            {
+                n = Common.CheckRange(n, 0, partPage.eMaxTotalVolume);
+                mml.args = new List<object>();
+                mml.args.Add(n);
+            }
+            else
+            {
+                mml.args = null;
+            }
+        }
 
         private void CmdTotalVolumeOrArpeggioMASE(partWork pw, partPage page, MML mml)
         {
@@ -427,7 +445,6 @@ namespace Core
                 n = 0;
             }
             mml.args.Add(n);
-            page.m_LatestVolumeL = Common.CheckRange(n, 0 , partPage.eMaxTotalVolume);
 
             pw.skipTabSpace(page);
 
@@ -440,11 +457,6 @@ namespace Core
                     n = 0;
                 }
                 mml.args.Add(n);
-                page.m_LatestVolumeR = Common.CheckRange(n, 0, partPage.eMaxTotalVolume); ;
-            }
-            else
-            {
-                page.m_LatestVolumeR = page.m_LatestVolumeL;
             }
         }
 
@@ -459,18 +471,15 @@ namespace Core
             }
             if (!downflag)
             {
-                page.m_LatestVolumeL = Common.CheckRange(page.m_LatestVolumeL + page.m_VolumeUDStep, 0, partPage.eMaxTotalVolume);
-                page.m_LatestVolumeR = Common.CheckRange(page.m_LatestVolumeR + page.m_VolumeUDStep, 0, partPage.eMaxTotalVolume);
+                mml.type = enmMMLType.VolumeUp;
             }
             else
             {
-                page.m_LatestVolumeL = Common.CheckRange(page.m_LatestVolumeL - page.m_VolumeUDStep, 0, partPage.eMaxTotalVolume);
-                page.m_LatestVolumeR = Common.CheckRange(page.m_LatestVolumeR - page.m_VolumeUDStep, 0, partPage.eMaxTotalVolume);
+                mml.type = enmMMLType.VolumeDown;
             }
-            mml.type = enmMMLType.TotalVolume;
+            n = Common.CheckRange(page.m_VolumeUDStep, 0, partPage.eMaxTotalVolume);
             mml.args = new List<object>();
-            mml.args.Add(page.m_LatestVolumeL);
-            mml.args.Add(page.m_LatestVolumeR);
+            mml.args.Add(n);
         }
 
         private void CmdMIDIChMASE(partWork pw, partPage page, MML mml)
