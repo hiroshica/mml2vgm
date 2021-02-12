@@ -55,6 +55,15 @@ namespace Core
                             page.waitCounter = 0;
                             page.freq = -1;
 
+                            if (!info.m_CompleMaseMML)
+                            {
+                                page.m_MaseMode = false;
+                            }
+                            else
+                            {
+                                page.m_MaseMode = true;
+                            }
+
                             Step1(pw, page);//mml全体のフォーマット解析
                             Step2(page);//toneDoubler,bend,tieコマンドの解析
                             Step3(page);//リピート、連符コマンドの解析
@@ -90,13 +99,13 @@ namespace Core
                 else
                 {
                     //lineNumber = pw.getLineNumber();
-                    if (!info.m_CompleMaseMML)
+                    if (!page.m_MaseMode)
                     {
                         Commander(pw, page, cmd);
                     }
                     else
                     {
-                        CommanderPHG(pw, page, cmd);
+                        CommanderMASE(pw, page, cmd);
                     }
                 }
             }

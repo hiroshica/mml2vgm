@@ -97,7 +97,7 @@
     <Compile Include="MML.cs" />
     <Compile Include="mml2vgm.cs" />
     <Compile Include="MMLAnalyze.cs" />
-    <Compile Include="MMLAnalyzePHG.cs" />
+    <Compile Include="MMLAnalyzeMASE.cs" />
     <Compile Include="msgBox.cs" />
     <Compile Include="mucomADPCM2PCM.cs" />
     <Compile Include="Note.cs" />
