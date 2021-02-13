@@ -71,6 +71,8 @@ namespace Core
                 pg.directModeTre = false;
                 pg.pitchBend = 0;
                 pg.MIDIch = pg.ch % 16;
+                pg.m_AccentMode = partPage.eAccentMode.eNONE;
+
             }
         }
 
@@ -212,6 +214,76 @@ namespace Core
             vmml.line = mml.line;
             SetDummyData(page, vmml);
         }
+
+        // MASE extend
+        public override void CmdIntegrationVolume(partPage page, MML mml)
+        {
+            int n;
+            n = (int)mml.args[0];
+            double ans = (double)n / (double)MASE.MASEExtend.eMaxTotalVolume;
+
+            n = (int)((double)page.MaxExpression * ans);
+
+            page.latestVolume = n;
+            page.expression = Common.CheckRange(n, 0, page.MaxExpression);
+
+            MML vmml = new MML();
+            vmml.type = enmMMLType.Volume;
+            vmml.args = new List<object>();
+            vmml.args.Add(page.expression);
+            vmml.line = mml.line;
+            SetDummyData(page, vmml);
+
+        }
+        public override void CmdIntegrationVolumeUp(partPage page, MML mml)
+        {
+            int n;
+            n = (int)mml.args[0];
+            double ans = (double)n / (double)MASE.MASEExtend.eMaxTotalVolume;
+
+            n = (int)((double)page.MaxExpression * ans);
+
+            page.latestVolume = Common.CheckRange(page.latestVolume + n, 0, page.MaxExpression);
+            page.expression = page.latestVolume;
+
+            MML vmml = new MML();
+            vmml.type = enmMMLType.Volume;
+            vmml.args = new List<object>();
+            vmml.args.Add(page.expression);
+            vmml.line = mml.line;
+            SetDummyData(page, vmml);
+        }
+        public override void CmdIntegrationVolumeDown(partPage page, MML mml)
+        {
+            int n;
+            n = (int)mml.args[0];
+            double ans = (double)n / (double)MASE.MASEExtend.eMaxTotalVolume;
+
+            n = (int)((double)page.MaxExpression * ans);
+
+            page.latestVolume = Common.CheckRange(page.latestVolume - n, 0, page.MaxExpression);
+            page.expression = page.latestVolume;
+
+            MML vmml = new MML();
+            vmml.type = enmMMLType.Volume;
+            vmml.args = new List<object>();
+            vmml.args.Add(page.expression);
+            vmml.line = mml.line;
+            SetDummyData(page, vmml);
+        }
+        public override void CmdIntegrationVolumeAccent(partPage page, MML mml)
+        {
+            int n;
+            n = (int)mml.args[0];
+            double ans = (double)n / (double)MASE.MASEExtend.eMaxTotalVolume;
+
+            n = (int)((double)page.MaxExpression * ans);
+
+            page.m_AccentVolume = n;
+            page.m_AccentMode = partPage.eAccentMode.eACCENT_ON;
+        }
+        // MASE extend
+
 
         public override void CmdLoopExtProc(partPage page, MML mml)
         {
@@ -422,6 +494,23 @@ namespace Core
 
         public override void SetKeyOn(partPage page, MML mml)
         {
+            {
+                switch (page.m_AccentMode)
+                {
+                    case partPage.eAccentMode.eACCENT_ON:
+                        OutMidiControlChange(page, mml, enmControlChange.Expression, (byte)page.m_AccentVolume);
+                        page.m_AccentMode = partPage.eAccentMode.eACCENT_OFF;
+                        break;
+                    case partPage.eAccentMode.eACCENT_OFF:
+                        OutMidiControlChange(page, mml, enmControlChange.Expression, (byte)page.expression);
+                        page.m_AccentMode = partPage.eAccentMode.eNONE;
+                        break;
+                    default:
+                        break;
+                }
+            }
+
+
             Note n = (Note)mml.args[0];
             byte noteNum;
             int arpNote = page.arpFreqMode ? 0 : page.arpDelta;

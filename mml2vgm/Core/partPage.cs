@@ -642,9 +642,11 @@ namespace Core
         public partPage(partPage sharedPg)
         {
             this.spg = sharedPg;
-            this.m_Accentvelocity = MASE.MASEExtend.eMaxTotalVelocity;
+
+            this.m_AccentVolume = MASE.MASEExtend.eMaxTotalVelocity;
             this.m_VolumeUDStep = MASE.MASEExtend.eMaxTotalVolume / 10;
             this.m_MaseMode = false;
+            this.m_AccentMode = eAccentMode.eNONE;
         }
 
         public void sharedPageInitializer()
@@ -665,7 +667,14 @@ namespace Core
         //
         public bool m_MaseMode = false;
         public int m_VolumeUDStep = -1;
-        public int m_Accentvelocity = -1;
+        public int m_AccentVolume = -1;
+        public enum eAccentMode
+        {
+            eNONE = 0,
+            eACCENT_ON,
+            eACCENT_OFF,
+        }
+        public eAccentMode m_AccentMode;
         //
         // mase 追加work
         //

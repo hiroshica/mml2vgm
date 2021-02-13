@@ -15,10 +15,13 @@ namespace MASE
     }
     enum enmMMLTypeExtend
     {
-        IntegrationVolume = enmMMLType.IDE + 1,  // @V
+        IntegrationVolume = enmMMLType.IDE + 1,  // @V 統合音量midiのエクスパンションとして機能
         IntegrationVolumeUp,
         IntegrationVolumeDown,
-        Accentvelocity
+        IntegrationVolumeAccent,
+
+
+        ExtendEnd
     }
 }
 
@@ -82,6 +85,7 @@ namespace Core
                 mm.column = page.pos.col + 1;
                 mm.args = new List<object>();
                 mm.args.Add(page.pos.alies);
+
                 page.mmlData.Add(mm);
 
                 //直前値を更新
@@ -374,11 +378,11 @@ namespace Core
             int n;
             if (pw.getNum(page, out n))
             {
-                page.m_Accentvelocity = Common.CheckRange(n, 0, MASE.MASEExtend.eMaxTotalVelocity);
+                page.m_AccentVolume = Common.CheckRange(n, 0, MASE.MASEExtend.eMaxTotalVolume);
             }
-            mml.type = (enmMMLType)MASE.enmMMLTypeExtend.Accentvelocity;
+            mml.type = (enmMMLType)MASE.enmMMLTypeExtend.IntegrationVolumeAccent;
             mml.args = new List<object>();
-            mml.args.Add(page.m_Accentvelocity);
+            mml.args.Add(page.m_AccentVolume);
         }
 
         private void CmdVolumeUDMASE(partWork pw, partPage page, MML mml, bool downflag = false)
@@ -426,7 +430,7 @@ namespace Core
             mml.type = enmMMLType.Instrument;
             mml.args = new List<object>();
             char a = pw.getChar(page);
-            int maxrange = 4;
+            int maxrange = 0xffff;
             switch (a)
             {
                 case 'T':                    //@Tn
@@ -493,7 +497,7 @@ namespace Core
                     else msgBox.setErrMsg(msg.get("E05003"), mml.line.Lp);
                     n = 0;
                 }
-                n = Common.CheckRange(n, 0, 0xffff);
+                n = Common.CheckRange(n, 0, maxrange);
                 mml.args.Add(n);
 
                 if (
@@ -534,7 +538,7 @@ namespace Core
                 }
                 else if (pw.getNum(page, out n))
                 {
-                    n = Common.CheckRange(n, 0, maxrange);
+                    n = Common.CheckRange(n, 0, 4);
                     mml.args.Add(n);
                 }
                 else

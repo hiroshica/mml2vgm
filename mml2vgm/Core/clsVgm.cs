@@ -5431,6 +5431,29 @@ namespace Core
                     page.chip.CmdTraceUpdateStack(page, mml);
                     page.mmlPos++;
                     break;
+                // MASE extend
+                case (enmMMLType)MASE.enmMMLTypeExtend.IntegrationVolume:
+                    log.Write("IntegrationVolume");
+                    page.chip.CmdIntegrationVolume(page, mml);
+                    page.mmlPos++;
+                    break;
+                case (enmMMLType)MASE.enmMMLTypeExtend.IntegrationVolumeUp:
+                    log.Write("IntegrationVolumeUp");
+                    page.chip.CmdIntegrationVolumeUp(page, mml);
+                    page.mmlPos++;
+                    break;
+                case (enmMMLType)MASE.enmMMLTypeExtend.IntegrationVolumeDown:
+                    log.Write("IntegrationVolumeDown");
+                    page.chip.CmdIntegrationVolumeDown(page, mml);
+                    page.mmlPos++;
+                    break;
+                case (enmMMLType)MASE.enmMMLTypeExtend.IntegrationVolumeAccent:
+                    log.Write("IntegrationVolumeAccent");
+                    page.chip.CmdIntegrationVolumeAccent(page, mml);
+                    page.mmlPos++;
+                    break;
+
+                // MASE extend
                 default:
                     msgBox.setErrMsg(string.Format(msg.get("E01016")
                         , mml.type)

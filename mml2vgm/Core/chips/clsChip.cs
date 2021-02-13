@@ -2165,6 +2165,23 @@ namespace Core
             return "みじっそう";
         }
 
+
+        // MASE extend
+        public virtual void CmdIntegrationVolume(partPage page, MML mml)
+        {
+        }
+        public virtual void CmdIntegrationVolumeUp(partPage page, MML mml)
+        {
+        }
+        public virtual void CmdIntegrationVolumeDown(partPage page, MML mml)
+        {
+        }
+        public virtual void CmdIntegrationVolumeAccent(partPage page, MML mml)
+        {
+        }
+        // MASE extend
+
+
     }
 
     public class clsPcmDataInfo
