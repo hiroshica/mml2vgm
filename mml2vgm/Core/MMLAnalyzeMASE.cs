@@ -5,6 +5,23 @@ using System.Data.OleDb;
 using System.Drawing;
 using System.Linq;
 
+namespace MASE
+{
+
+    public class MASEExtend
+    {
+        public const int eMaxTotalVolume = 1000;
+        public const int eMaxTotalVelocity = 1000;
+    }
+    enum enmMMLTypeExtend
+    {
+        IntegrationVolume = enmMMLType.IDE + 1,  // @V
+        IntegrationVolumeUp,
+        IntegrationVolumeDown,
+        Accentvelocity
+    }
+}
+
 namespace Core
 {
     public partial class MMLAnalyze
@@ -125,7 +142,7 @@ namespace Core
                     break;
                 case '@': // instrument
                     log.Write("instrument");
-                    CmdInstrument(pw, page, mml);
+                    CmdInstrumentMASE(pw, page, mml);
                     break;
                 case '>': // octave Up
                     log.Write("octave Up");
@@ -141,7 +158,7 @@ namespace Core
                     break;
                 case '[': // volume Down
                     log.Write("volume Down");
-                    CmdVolumeUDMASE(pw, page, mml,true);
+                    CmdVolumeUDMASE(pw, page, mml, true);
                     break;
                 case '#': // length(clock)
                     log.Write("length(clock)");
@@ -273,11 +290,11 @@ namespace Core
                     break;
                 case 'v': // volume
                     log.Write("volume/Expression");
-                    CmdVolumeMASE(pw, page, mml);
+                    CmdVolume(pw, page, mml);
                     break;
                 case 'V': // totalVolume(Adpcm-A / Rhythm) or volume Arpeggio
                     log.Write("totalVolume(Adpcm-A / Rhythm) or volume Arpeggio");
-                    CmdTotalVolumeOrArpeggioMASE(pw, page, mml);
+                    CmdTotalVolumeOrArpeggio(pw, page, mml);
                     break;
                 case 'w': // noise
                     log.Write("noise");
@@ -354,112 +371,15 @@ namespace Core
 
         private void CmdAccentVolumeMASE(partWork pw, partPage page, MML mml)
         {
-            if (pw.getNum(page, out int n))
-            {
-                n = Common.CheckRange(n, 0, partPage.eMaxTotalVelocity);
-                page.m_Accentvelocity = n;
-            }
-            page.m_AccentOn = true;
-        }
-
-        private void CmdVolumeMASE(partWork pw, partPage page, MML mml)
-        {
-            pw.incPos(page);
-            mml.type = enmMMLType.Volume;
-            if (pw.getNum(page, out int n))
-            {
-                n = Common.CheckRange(n, 0, partPage.eMaxTotalVolume);
-                mml.args = new List<object>();
-                mml.args.Add(n);
-            }
-            else
-            {
-                mml.args = null;
-            }
-        }
-
-        private void CmdTotalVolumeOrArpeggioMASE(partWork pw, partPage page, MML mml)
-        {
-            pw.incPos(page);
-            if (pw.getChar(page) != 'P') //vP
-            {
-                CmdTotalVolumeMASE(pw, page, mml);
-                return;
-            }
-
-            CmdVArpeggioMASE(pw, page, mml);
-        }
-
-        private void CmdVArpeggioMASE(partWork pw, partPage page, MML mml)
-        {
-            pw.incPos(page);
-            if (pw.getChar(page) == 'O') //vpO
-            {
-                pw.incPos(page);
-                if (pw.getChar(page) == 'N') //vpoN
-                {
-                    pw.incPos(page);
-                    mml.type = enmMMLType.Arpeggio;
-                    mml.args = new List<object>();
-                    mml.args.Add("VPON");
-                }
-                else if (pw.getChar(page) == 'F') //vpoF
-                {
-                    pw.incPos(page);
-                    mml.type = enmMMLType.Arpeggio;
-                    mml.args = new List<object>();
-                    mml.args.Add("VPOF");
-                }
-                else
-                {
-                    msgBox.setErrMsg(msg.get("E05062"), mml.line.Lp);
-                }
-            }
-            else
-            {
-                //VPn
-                if (!pw.getNum(page, out int n))
-                {
-                    msgBox.setErrMsg(msg.get("E05063"), mml.line.Lp);
-                }
-                else
-                {
-                    mml.type = enmMMLType.Arpeggio;
-                    mml.args = new List<object>();
-                    mml.args.Add("VP");
-                    mml.args.Add(n);
-                }
-            }
-        }
-
-
-        private void CmdTotalVolumeMASE(partWork pw, partPage page, MML mml)
-        {
             int n;
-            mml.type = enmMMLType.TotalVolume;
+            if (pw.getNum(page, out n))
+            {
+                page.m_Accentvelocity = Common.CheckRange(n, 0, MASE.MASEExtend.eMaxTotalVelocity);
+            }
+            mml.type = (enmMMLType)MASE.enmMMLTypeExtend.Accentvelocity;
             mml.args = new List<object>();
-
-            if (!pw.getNum(page, out n))
-            {
-                msgBox.setErrMsg(msg.get("E05004"), mml.line.Lp);
-                n = 0;
-            }
-            mml.args.Add(n);
-
-            pw.skipTabSpace(page);
-
-            if (pw.getChar(page) == ',')
-            {
-                pw.incPos(page);
-                if (!pw.getNum(page, out n))
-                {
-                    msgBox.setErrMsg(msg.get("E05004"), mml.line.Lp);
-                    n = 0;
-                }
-                mml.args.Add(n);
-            }
+            mml.args.Add(page.m_Accentvelocity);
         }
-
 
         private void CmdVolumeUDMASE(partWork pw, partPage page, MML mml, bool downflag = false)
         {
@@ -467,19 +387,18 @@ namespace Core
             pw.incPos(page);
             if (pw.getNum(page, out n))
             {
-                page.m_VolumeUDStep = n;
+                page.m_VolumeUDStep = Common.CheckRange(n, 0, MASE.MASEExtend.eMaxTotalVolume);
             }
             if (!downflag)
             {
-                mml.type = enmMMLType.VolumeUp;
+                mml.type = (enmMMLType)MASE.enmMMLTypeExtend.IntegrationVolumeUp;
             }
             else
             {
-                mml.type = enmMMLType.VolumeDown;
+                mml.type = (enmMMLType)MASE.enmMMLTypeExtend.IntegrationVolumeDown;
             }
-            n = Common.CheckRange(page.m_VolumeUDStep, 0, partPage.eMaxTotalVolume);
             mml.args = new List<object>();
-            mml.args.Add(n);
+            mml.args.Add(page.m_VolumeUDStep);
         }
 
         private void CmdMIDIChMASE(partWork pw, partPage page, MML mml)
@@ -498,6 +417,136 @@ namespace Core
             mml.type = enmMMLType.MIDICh;
             mml.args = new List<object>();
             mml.args.Add(n);
+        }
+        private void CmdInstrumentMASE(partWork pw, partPage page, MML mml)
+        {
+            int n;
+            pw.incPos(page);
+
+            mml.type = enmMMLType.Instrument;
+            mml.args = new List<object>();
+            char a = pw.getChar(page);
+            int maxrange = 4;
+            switch (a)
+            {
+                case 'T':                    //@Tn
+                    //tone doubler
+                    mml.args.Add('T');
+                    pw.incPos(page);
+                    break;
+                case 'E':                    //@En
+                    //Envelope
+                    mml.args.Add('E');
+                    pw.incPos(page);
+                    break;
+                case 'I':                    //@In
+                    //Instrument(プリセット音色)
+                    mml.args.Add('I');
+                    pw.incPos(page);
+                    break;
+                case 'N':                    //@Nn
+                    //None(音色設定直前に何もしない)
+                    mml.args.Add('N');
+                    pw.incPos(page);
+                    break;
+                case 'R':                    //@Rn
+                    //RR(音色設定直前にRR=15をセットする)
+                    mml.args.Add('R');
+                    pw.incPos(page);
+                    break;
+                case 'A':                    //@An
+                    //All send(音色設定直前に消音向け音色をセットする)
+                    mml.args.Add('A');
+                    pw.incPos(page);
+                    break;
+                case 'W':                    //@Wn,n,n,n
+                    //波形データ(OPNA2専用)
+                    mml.args.Add('W');
+                    pw.incPos(page);
+                    break;
+                case 'S':                    //@Sn
+                    //SysEx(MIDI系専用)
+                    mml.args.Add('S');
+                    pw.incPos(page);
+                    break;
+                case 'v':                    //@vn
+                    mml.type = enmMMLType.RelativeVolumeSetting;
+                    pw.incPos(page);
+                    break;
+                case 'V':                    //@Vn
+                    mml.type = (enmMMLType)MASE.enmMMLTypeExtend.IntegrationVolume;
+                    pw.incPos(page);
+                    maxrange = MASE.MASEExtend.eMaxTotalVolume;
+                    break;
+
+                default:                     //normal
+                    mml.args.Add('n');
+                    break;
+            }
+
+            //数値取得
+            if (a != 'W')
+            {
+                if (!pw.getNum(page, out n))
+                {
+                    if (mml.type == enmMMLType.Instrument) msgBox.setErrMsg(msg.get("E05002"), mml.line.Lp);
+                    else msgBox.setErrMsg(msg.get("E05003"), mml.line.Lp);
+                    n = 0;
+                }
+                n = Common.CheckRange(n, 0, 0xffff);
+                mml.args.Add(n);
+
+                if (
+                        (
+                        pw.cpg.Type == enmChannelType.FMOPN
+                        || pw.cpg.Type == enmChannelType.FMOPL
+                        || pw.cpg.Type == enmChannelType.FMOPM
+                        || pw.cpg.Type == enmChannelType.FMOPNex
+                        )
+                    && (
+                        a == 'N'
+                        || a == 'R'
+                        || a == 'A'
+                        || (mml.args[0] is char && (char)mml.args[0] == 'n')
+                        )
+                    )
+                {
+                    if (desVGM.instFM.ContainsKey(n))
+                    {
+                        mml.args.Add(desVGM.instFM[n].Item1);
+                    }
+                    else
+                    {
+                        msgBox.setErrMsg(msg.get("E05002"), mml.line.Lp);
+                    }
+                }
+
+                return;
+            }
+
+            //数値複数取得
+            while (true)
+            {
+                if (pw.getChar(page) == 'r')
+                {
+                    pw.incPos(page);
+                    mml.args.Add("reset");
+                }
+                else if (pw.getNum(page, out n))
+                {
+                    n = Common.CheckRange(n, 0, maxrange);
+                    mml.args.Add(n);
+                }
+                else
+                {
+                    mml.args.Add(null);
+                }
+
+                pw.skipTabSpace(page);
+
+                if (pw.getChar(page) != ',') break;
+                pw.incPos(page);
+            }
         }
     }
 }

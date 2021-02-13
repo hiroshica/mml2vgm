@@ -2514,11 +2514,6 @@ namespace Core
                     note.velocity = Common.CheckRange(n, 0, 127);
                 }
             }
-            if (page.m_AccentOn)
-            {
-                note.velocity = page.m_Accentvelocity;
-                page.m_AccentOn = false;
-            }
 
             pw.skipTabSpace(page);
 

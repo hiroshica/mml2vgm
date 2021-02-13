@@ -567,21 +567,7 @@ namespace Core
         public int beforepcmBank = -1;
 
         public enmChannelType Type;
-        public int m_MaxVolume = 0;
-
-        public int MaxVolume
-        {
-            get
-            {
-                return this.m_MaxVolume;
-            }
-            set
-            {
-                this.m_MaxVolume = value;
-                this.m_Accentvelocity = eMaxTotalVelocity;
-                this.m_VolumeUDStep = eMaxTotalVolume / 10;
-            }
-        }
+        public int MaxVolume = 0;
 
         public int MaxExpression = 0;
         public byte[][] port = null;
@@ -656,7 +642,8 @@ namespace Core
         public partPage(partPage sharedPg)
         {
             this.spg = sharedPg;
-            this.m_AccentOn = false;
+            this.m_Accentvelocity = MASE.MASEExtend.eMaxTotalVelocity;
+            this.m_VolumeUDStep = MASE.MASEExtend.eMaxTotalVolume / 10;
             this.m_MaseMode = false;
         }
 
@@ -676,13 +663,9 @@ namespace Core
         //
         // mase 追加work
         //
-        public const int eMaxTotalVolume = 1000;
-        public const int eMaxTotalVelocity = 1000;
         public bool m_MaseMode = false;
         public int m_VolumeUDStep = -1;
-
         public int m_Accentvelocity = -1;
-        public bool m_AccentOn = false;
         //
         // mase 追加work
         //
