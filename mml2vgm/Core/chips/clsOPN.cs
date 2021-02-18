@@ -1778,11 +1778,13 @@ namespace Core
                 || (page.Type == enmChannelType.FMPCMex && !page.pcm) //OPN2XPCMチャンネル
                 )
             {
+                SetAccent(page, mml);
                 SetFmVolume(page, mml);
                 SetFmTL(page, mml);
             }
             else if (page.Type == enmChannelType.SSG)
             {
+                SetAccent(page, mml);
                 SetSsgVolume(page, mml);
             }
         }
@@ -2304,6 +2306,77 @@ namespace Core
             page.detune = n;
             SetDummyData(page, mml);
         }
+
+
+        // MASE extend
+        public override void CmdIntegrationVolume(partPage page, MML mml)
+        {
+            int n;
+            n = (int)mml.args[0];
+            double ans = (double)n / (double)MASE.MASEExtend.eMaxTotalVolume;
+
+            n = (int)((double)page.MaxVolume * ans);
+
+            page.latestVolume = Common.CheckRange(n, 0, page.MaxVolume);
+            page.volume = page.latestVolume;
+            SetVolume(page, mml);
+        }
+        public override void CmdIntegrationVolumeUp(partPage page, MML mml)
+        {
+            int n;
+            n = (int)mml.args[0];
+            double ans = (double)n / (double)MASE.MASEExtend.eMaxTotalVolume;
+
+            n = (int)((double)page.MaxVolume * ans);
+
+            page.latestVolume = Common.CheckRange(page.latestVolume + n, 0, page.MaxVolume);
+            page.volume = page.latestVolume;
+            SetVolume(page, mml);
+        }
+        public override void CmdIntegrationVolumeDown(partPage page, MML mml)
+        {
+            int n;
+            n = (int)mml.args[0];
+            double ans = (double)n / (double)MASE.MASEExtend.eMaxTotalVolume;
+
+            n = (int)((double)page.MaxVolume * ans);
+
+            page.latestVolume = Common.CheckRange(page.latestVolume - n, 0, page.MaxVolume);
+            page.volume = page.latestVolume;
+            SetVolume(page, mml);
+        }
+        public override void CmdIntegrationVolumeAccent(partPage page, MML mml)
+        {
+            int n;
+            n = (int)mml.args[0];
+            double ans = (double)n / (double)MASE.MASEExtend.eMaxTotalVolume;
+
+            n = (int)((double)page.MaxVolume * ans);
+
+            page.m_AccentVolume = n;
+            page.m_AccentMode = partPage.eAccentMode.eACCENT_ON;
+        }
+
+        public void SetAccent(partPage page, MML mml)
+        {
+            switch (page.m_AccentMode)
+            {
+                case partPage.eAccentMode.eACCENT_ON:
+                    page.m_AccentStockVolume = page.volume;
+                    page.volume = page.m_AccentVolume;
+                    page.m_AccentMode = partPage.eAccentMode.eACCENT_OFF;
+                    break;
+                case partPage.eAccentMode.eACCENT_OFF:
+                    page.volume = page.m_AccentStockVolume;
+                    page.m_AccentMode = partPage.eAccentMode.eNONE;
+                    break;
+                default:
+                    break;
+            }
+        }
+        // MASE extend
+
+
 
     }
 }

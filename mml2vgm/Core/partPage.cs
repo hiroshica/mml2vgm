@@ -668,6 +668,7 @@ namespace Core
         public bool m_MaseMode = false;
         public int m_VolumeUDStep = -1;
         public int m_AccentVolume = -1;
+        public int m_AccentStockVolume = -1;
         public enum eAccentMode
         {
             eNONE = 0,
