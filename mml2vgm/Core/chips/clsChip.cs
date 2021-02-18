@@ -1832,6 +1832,7 @@ namespace Core
                 SetCommandArpeggioAtKeyOn(page, mml);
                 SetEnvelopeAtKeyOn(page, mml);
                 SetLfoAtKeyOn(page, mml);
+                SetAccent(page, mml);
                 SetVolume(page, mml);
                 //強制設定
                 //pw.ppg[pw.cpgNum].freq = -1;
@@ -2169,18 +2170,70 @@ namespace Core
         // MASE extend
         public virtual void CmdIntegrationVolume(partPage page, MML mml)
         {
+            int n;
+            n = (int)mml.args[0];
+            double ans = (double)n / (double)MASE.MASEExtend.eMaxTotalVolume;
+
+            n = (int)((double)page.MaxVolume * ans);
+
+            page.latestVolume = Common.CheckRange(n, 0, page.MaxVolume);
+            page.volume = page.latestVolume;
+            SetVolume(page, mml);
         }
         public virtual void CmdIntegrationVolumeUp(partPage page, MML mml)
         {
+            int n;
+            n = (int)mml.args[0];
+            double ans = (double)n / (double)MASE.MASEExtend.eMaxTotalVolume;
+
+            n = (int)((double)page.MaxVolume * ans);
+
+            page.latestVolume = Common.CheckRange(page.latestVolume + n, 0, page.MaxVolume);
+            page.volume = page.latestVolume;
+            SetVolume(page, mml);
         }
         public virtual void CmdIntegrationVolumeDown(partPage page, MML mml)
         {
+            int n;
+            n = (int)mml.args[0];
+            double ans = (double)n / (double)MASE.MASEExtend.eMaxTotalVolume;
+
+            n = (int)((double)page.MaxVolume * ans);
+
+            page.latestVolume = Common.CheckRange(page.latestVolume - n, 0, page.MaxVolume);
+            page.volume = page.latestVolume;
+            SetVolume(page, mml);
         }
         public virtual void CmdIntegrationVolumeAccent(partPage page, MML mml)
         {
+            int n;
+            n = (int)mml.args[0];
+            double ans = (double)n / (double)MASE.MASEExtend.eMaxTotalVolume;
+
+            n = (int)((double)page.MaxVolume * ans);
+
+            page.m_AccentVolume = n;
+            page.m_AccentMode = partPage.eAccentMode.eACCENT_ON;
+        }
+
+        public virtual void SetAccent(partPage page, MML mml)
+        {
+            switch (page.m_AccentMode)
+            {
+                case partPage.eAccentMode.eACCENT_ON:
+                    page.m_AccentStockVolume = page.volume;
+                    page.volume = page.m_AccentVolume;
+                    page.m_AccentMode = partPage.eAccentMode.eACCENT_OFF;
+                    break;
+                case partPage.eAccentMode.eACCENT_OFF:
+                    page.volume = page.m_AccentStockVolume;
+                    page.m_AccentMode = partPage.eAccentMode.eNONE;
+                    break;
+                default:
+                    break;
+            }
         }
         // MASE extend
-
 
     }
 
