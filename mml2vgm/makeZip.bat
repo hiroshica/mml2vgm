@@ -4,6 +4,9 @@ del /Q .\output\*.*
 xcopy .\mml2vgm\bin\Release\*.* .\output\mml2vgm /E /R /Y /I /K
 del /Q .\output\mml2vgm\*.pdb
 
+xcopy .\mml2vgm\sample\* .\output\mml2vgm\sample\ /E /R /Y /I /K
+pause
+
 xcopy .\mvc\bin\Release\*.* .\output\mml2vgm /E /R /Y /I /K
 
 xcopy .\mml2vgmIDE\bin\Release\*.* .\output\mml2vgmIDE /E /R /Y /I /K

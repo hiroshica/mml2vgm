@@ -1,0 +1,11 @@
+﻿'{
+	USEMASEMML           = true
+}
+
+'Cn1 T120
+
+L01 @I0o4l4 @V800 cdef!gab^c2
+
+'L10 m1@V800l8 (crrr)4
+'L11 m1@V800l8 (rrcr)4
+'L14 m1@V800l16 (!cc!cc!cc!cc)4

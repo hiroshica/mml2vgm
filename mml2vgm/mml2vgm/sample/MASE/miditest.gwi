@@ -1,0 +1,50 @@
+﻿'{
+	TitleName            =
+	TitleNameJ           =
+	GameName             =
+	GameNameJ            =
+	SystemName           =MIDI
+	SystemNameJ          =MIDI
+	Composer             =hiroshica
+	ComposerJ            =hiroshica
+	ReleaseDate          =
+	Converted            =hiroshica
+	Format               =ZGM
+	ClockCount           =192
+	USEMASEMML           = true
+}
+
+
+GM1 ON
+'@ S   0
+'@     $F0,$7E,$7F,$09,$01,$F7
+
+GS reset
+'@ S   1
+'@$F0,$41$,10$,42,$12,$40,$00,$7F,$00,$41,$F7
+
+; setup
+'Cn1 T158
+'M01 @S1r2 o4@0l8@V1000
+M02 r2 o3@34@V1000l8
+M03 r2 o4@0V127l8
+M04 r2 o4@0V127l8
+M05 r2 o4@0V127l8
+M06 r2 o4@0V127l8
+M07 r2 o4@0V127l8
+M08 r2 o4@0V127l8
+M09 r2 o4@0V127l8
+'M10 r2 CH10o3@16@V1000l8
+'M11 r2 CH10o3   l8
+M12 r2 CH10o3   l8
+M13 r2 CH10o3   l8
+M14 r2 CH10o3   l8
+M15 r2 CH10o3   l8
+M16 r2 CH10o3   l8
+
+; setup
+
+'M01 @V1000cdefgab>c2
+
+'M10 (crd4ccd4)2
+'M11 (f+f+f+f+)4

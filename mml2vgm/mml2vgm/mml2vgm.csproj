@@ -179,6 +179,9 @@
     <None Include="sample\K053260\testK053260.gwi">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Include="sample\MASE\miditest.gwi" />
+    <None Include="sample\MASE\oplltest.gwi" />
+    <None Include="sample\MASE\YM2612test.gwi" />
     <None Include="sample\MidiGM\testGM.gwi">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
