@@ -19,16 +19,16 @@ copy /Y .\..\mml2vgm_MMLCommandMemo.txt .\output\mml2vgmIDE
 copy /Y .\..\mmlCommandTable.md .\output
 copy /Y .\..\README.md .\output
 copy /Y .\..\ZGMspec.txt .\output
-copy /Y .\..\m98ƒRƒ}ƒ“ƒhEƒŠƒtƒ@ƒŒƒ“ƒX.pdf .\output
+copy /Y .\..\m98ï¿½Rï¿½}ï¿½ï¿½ï¿½hï¿½Eï¿½ï¿½ï¿½tï¿½@ï¿½ï¿½ï¿½ï¿½ï¿½X.pdf .\output
 copy /Y .\..\PSG2.txt .\output
 copy /Y .\..\YM2609.txt .\output
 copy /Y .\..\maseChangeMML.md .\output
 copy /Y .\removeZoneIdent.bat .\output
 del /Q .\output\mml2vgmIDE\*.pdb
-del /Q .\output\mml2vgmIDE\*.config
+:del /Q .\output\mml2vgmIDE\*.config
 del /Q .\output\mml2vgmIDE\*.wav
 del /Q .\output\mml2vgm\*.pdb
-del /Q .\output\mml2vgm\*.config
+:del /Q .\output\mml2vgm\*.config
 del /Q bin.zip
 powershell Compress-Archive -Path .\output\* -D bin
 pause
