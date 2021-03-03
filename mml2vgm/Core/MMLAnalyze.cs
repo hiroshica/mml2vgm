@@ -99,14 +99,7 @@ namespace Core
                 else
                 {
                     //lineNumber = pw.getLineNumber();
-                    if (!page.m_MaseMode)
-                    {
-                        Commander(pw, page, cmd);
-                    }
-                    else
-                    {
-                        CommanderMASE(pw, page, cmd);
-                    }
+                    Commander(pw, page, cmd);
                 }
             }
         }
@@ -226,15 +219,22 @@ namespace Core
                     pw.incPos(page);
                     break;
                 case '!': // CompileSkip
-                    log.Write("CompileSkip");
-                    page.dataEnd = true;
-                    mml.type = enmMMLType.CompileSkip;
-                    mml.args = new List<object>();
                     pw.incPos(page);
-                    if (pw.getChar(page) == '!')
-                        mml.args.Add("compileEnd");
+                    if (!page.m_MaseMode)
+                    {
+                        log.Write("CompileSkip");
+                        page.dataEnd = true;
+                        mml.type = enmMMLType.CompileSkip;
+                        mml.args = new List<object>();
+                        if (pw.getChar(page) == '!')
+                            mml.args.Add("compileEnd");
+                        else
+                            mml.args.Add("partEnd");
+                    }
                     else
-                        mml.args.Add("partEnd");
+                    {
+                        CmdAccentVolumeMASE(pw, page, mml);
+                    }
                     break;
                 case '@': // instrument
                     log.Write("instrument");
@@ -249,24 +249,52 @@ namespace Core
                     CmdOctaveDown(pw, page, mml);
                     break;
                 case ')': // volume Up
-                    log.Write(" volume Up");
-                    CmdVolumeUp(pw, page, mml);
+                    if (!page.m_MaseMode)
+                    {
+                        log.Write(" volume Up");
+                        CmdVolumeUp(pw, page, mml);
+                    }
+                    else
+                    {
+                        CmdRepeatEnd(pw, page, mml);
+                    }
                     break;
                 case '(': // volume Down
-                    log.Write("volume Down");
-                    CmdVolumeDown(pw, page, mml);
+                    if (!page.m_MaseMode)
+                    {
+                        log.Write("volume Down");
+                        CmdVolumeDown(pw, page, mml);
+                    }
+                    else
+                    {
+                        CmdRepeatStart(pw, page, mml);
+                    }
                     break;
                 case '#': // length(clock)
                     log.Write("length(clock)");
                     CmdClockLength(pw, page, mml);
                     break;
                 case '[': // repeat
-                    log.Write("repeat [");
-                    CmdRepeatStart(pw, page, mml);
+                    if (!page.m_MaseMode)
+                    {
+                        log.Write("repeat [");
+                        CmdRepeatStart(pw, page, mml);
+                    }
+                    else
+                    {
+                        CmdVolumeUDMASE(pw, page, mml, false);
+                    }
                     break;
                 case ']': // repeat
-                    log.Write("repeat ]");
-                    CmdRepeatEnd(pw, page, mml);
+                    if (!page.m_MaseMode)
+                    {
+                        log.Write("repeat ]");
+                        CmdRepeatEnd(pw, page, mml);
+                    }
+                    else
+                    {
+                        CmdVolumeUDMASE(pw, page, mml);
+                    }
                     break;
                 case '{': // renpu
                     log.Write("renpu {");
@@ -293,8 +321,16 @@ namespace Core
                     CmdTie(pw, page, mml);
                     break;
                 case '^':
-                    log.Write("tie plus clock");
-                    CmdTiePC(pw, page, mml);
+                    if (!page.m_MaseMode)
+                    {
+                        log.Write("tie plus clock");
+                        CmdTiePC(pw, page, mml);
+                    }
+                    else
+                    {
+                        log.Write("upper note");
+                        pw.incPos(page);
+                    }
                     break;
                 case '~':
                     log.Write("tie minus clock");
@@ -334,6 +370,11 @@ namespace Core
                     log.Write(" loop point");
                     CmdLoop(pw, page, mml);
                     break;
+                case 'H': // Midi Channel
+                    log.Write("Midi Channel");
+                    CmdMIDIChMASE(pw, page, mml);
+                    break;
+
                 case 'm': // pcm mode / pcm mapMode Sw
                     log.Write("pcm mode / pcm mapMode Sw");
                     CmdMode(pw, page, mml);
@@ -500,6 +541,7 @@ namespace Core
             mml.type = enmMMLType.Instrument;
             mml.args = new List<object>();
             char a = pw.getChar(page);
+            int maxrange = 0xffff;
 
             switch (a)
             {
@@ -547,6 +589,12 @@ namespace Core
                     mml.type = enmMMLType.RelativeVolumeSetting;
                     pw.incPos(page);
                     break;
+                case 'V':                    //@Vn
+                    mml.type = (enmMMLType)MASE.enmMMLTypeExtend.IntegrationVolume;
+                    pw.incPos(page);
+                    maxrange = MASE.MASEExtend.eMaxTotalVolume;
+                    break;
+
                 default:                     //normal
                     mml.args.Add('n');
                     break;
@@ -561,7 +609,7 @@ namespace Core
                     else msgBox.setErrMsg(msg.get("E05003"), mml.line.Lp);
                     n = 0;
                 }
-                n = Common.CheckRange(n, 0, 0xffff);
+                n = Common.CheckRange(n, 0, maxrange);
                 mml.args.Add(n);
 
                 if (
@@ -2378,10 +2426,10 @@ namespace Core
         // 9... ,c            コンマの後が音符ならばToneDoubler
         //                    数値の場合はベロシティ
         //10... :             和音指定(ウエイトキャンセル)
-        private void CmdNote(partWork pw, partPage page, char cmd, MML mml, bool upperflag = false)
+        private void CmdNote(partWork pw, partPage page, char cmd, MML mml)
         {
             int shift = 0;
-            if (upperflag)
+            if (page.m_MaseMode)
             {
                 pw.decPos(page);
                 if(pw.getChar(page) == '^')
@@ -2464,7 +2512,7 @@ namespace Core
 
             //& ^ ~ コマンドの解析
             int len = 0;
-            if (!upperflag)
+            if (!page.m_MaseMode)
             {
                 while (pw.getChar(page) == '&' || pw.getChar(page) == '^' || pw.getChar(page) == '~')
                 {

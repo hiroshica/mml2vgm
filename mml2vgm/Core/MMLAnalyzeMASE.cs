@@ -15,7 +15,7 @@ namespace MASE
     }
     enum enmMMLTypeExtend
     {
-        IntegrationVolume = enmMMLType.IDE + 1,  // @V 統合音量midiのエクスパンションとして機能
+        IntegrationVolume = enmMMLType.IDE + 1000,  // @V 統合音量midiのエクスパンションとして機能
         IntegrationVolumeUp,
         IntegrationVolumeDown,
         IntegrationVolumeAccent,
@@ -29,6 +29,7 @@ namespace Core
 {
     public partial class MMLAnalyze
     {
+#if false
         private void CommanderMASE(partWork pw, partPage page, char cmd)
         {
             MML mml = new MML();
@@ -372,6 +373,7 @@ namespace Core
                 swToneDoubler = false;
             }
         }
+#endif
 
         private void CmdAccentVolumeMASE(partWork pw, partPage page, MML mml)
         {
