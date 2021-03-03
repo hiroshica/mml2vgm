@@ -9,7 +9,7 @@ namespace Core
     {
         private short[] mulaw_tab;
         public List<long> memoryMap = null;
-        private double C352Divider;
+        public double C352Divider;
 
         public bool executeKeyonoff { get; private set; }
 
@@ -196,7 +196,7 @@ namespace Core
                 {
                     msgBox.setErrMsg(string.Format(msg.get("E09000")
                         , newDic[v.Key].Item2.loopAdr
-                        , size - 1), new LinePos("-"));
+                        , size - 1), new LinePos(null, "-"));
                     newDic[v.Key].Item2.loopAdr = -1;
                     newDic[v.Key].Item2.status = enmPCMSTATUS.ERROR;
                 }

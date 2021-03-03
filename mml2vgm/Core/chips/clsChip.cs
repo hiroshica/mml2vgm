@@ -1282,6 +1282,24 @@ namespace Core
             return;
         }
 
+        public virtual void CmdPageDirectSend(partPage page, MML mml)
+        {
+            string cmd = (string)mml.args[0];
+
+            switch (cmd)
+            {
+                case "PDON":
+                    page.spg.DirectSend = true;
+                    break;
+                case "PDOF":
+                    page.spg.DirectSend = false;
+                    break;
+            }
+
+            //SetDummyData(page, mml);
+            return;
+        }
+        
         public virtual void CmdHardEnvelope(partPage page, MML mml)
         {
             msgBox.setWrnMsg(msg.get("E10011")
@@ -2012,7 +2030,9 @@ namespace Core
                 //カレントページではない時
                 if (page != pw.cpg)
                 {
-                    //処理しない
+                    //処理しない(但しダイレクトセンドモードが有効な場合はコマンドを送信する)
+                    if(pw.spg.DirectSend)
+                        parent.OutData(page.sendData);
                     page.sendData.Clear();//送信データクリア
                     return;
                 }
@@ -2020,7 +2040,9 @@ namespace Core
                 if (page.requestInterrupt)
                 {
                     //このページの音色をセットアップする
-                    SetupPageData(pw, page);
+                    //(但しダイレクトセンドモードが有効な場合はコマンドを送信しない)
+                    if (!pw.spg.DirectSend)
+                        SetupPageData(pw, page);
                 }
             }
 
@@ -2029,7 +2051,6 @@ namespace Core
             //このページのデータをセンドする
             parent.OutData(page.sendData);
             page.sendData.Clear();
-
 
         }
 
@@ -2049,6 +2070,7 @@ namespace Core
                         if (mml.line != null && mml.line.Lp != null)
                         {
                             od.linePos = new LinePos(
+                                null, 
                                 mml.line.Lp.srcMMLID,
                                 mml.line.Lp.row,
                                 mml.line.Lp.col,
@@ -2078,6 +2100,7 @@ namespace Core
                     if (mml.line != null && mml.line.Lp != null)
                     {
                         od.linePos = new LinePos(
+                            mml.line.Lp.document,
                             mml.line.Lp.srcMMLID,
                             mml.line.Lp.row,
                             mml.line.Lp.col,
@@ -2110,6 +2133,7 @@ namespace Core
                         if (od.linePos != null)
                         {
                             o.linePos = new LinePos(
+                            od.linePos.document,
                                 od.linePos.srcMMLID,
                                 od.linePos.row,
                                 od.linePos.col,
@@ -2135,6 +2159,7 @@ namespace Core
                     if (od.linePos != null)
                     {
                         o.linePos = new LinePos(
+                            od.linePos.document, 
                             od.linePos.srcMMLID,
                             od.linePos.row,
                             od.linePos.col,

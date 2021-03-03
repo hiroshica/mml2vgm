@@ -17,6 +17,8 @@ namespace mml2vgmIDE
         private object sender = null;
         private string baseDir = "";
 
+        public TreeNode treenode { get; internal set; }
+
         public enum enmInstType
         {
             Dir,
@@ -27,7 +29,7 @@ namespace mml2vgmIDE
             SSG_WF,//OPNA2(SSG)
         }
 
-        public void Start(FrmMain parent, object sender, string baseDir,string add, Action<object, Tuple<enmInstType, string, string>[]> CompleteMethod)
+        public void Start(FrmMain parent, object sender, string baseDir,string add, Action<object,TreeNode , Tuple<enmInstType, string, string>[]> CompleteMethod)
         {
             this.parent = parent;
             this.sender = sender;
@@ -35,7 +37,8 @@ namespace mml2vgmIDE
             this.add = add;
 
             //mmlファイルの一覧を得る
-            List<FileSystemInfo> lstFile = GetFileList(baseDir);
+            List<FileSystemInfo> lstFile = new List<FileSystemInfo>();
+            GetFileList(baseDir,ref lstFile);
             //音色データを解析する
             List<Tuple<enmInstType, string, string>> lstInst = new List<Tuple<enmInstType, string, string>>();
             foreach (FileSystemInfo fi in lstFile)
@@ -51,12 +54,11 @@ namespace mml2vgmIDE
                     if (ins != null) lstInst.AddRange(ins);
                 }
             }
-            CompleteMethod?.Invoke(this.sender, lstInst.ToArray());
+            CompleteMethod?.Invoke(this.sender,treenode, lstInst.ToArray());
         }
 
-        private List<FileSystemInfo> GetFileList(string baseDir)
+        private void GetFileList(string baseDir, ref List<FileSystemInfo> lstFile)
         {
-            List<FileSystemInfo> lstFile = new List<FileSystemInfo>();
             try
             {
                 DirectoryInfo di = new DirectoryInfo(baseDir);
@@ -67,6 +69,7 @@ namespace mml2vgmIDE
                     if (f.Attributes == FileAttributes.Directory)
                     {
                         lstFile.Add(f);
+                        GetFileList(f.FullName, ref lstFile);
                     }
                     else
                     {
@@ -84,7 +87,6 @@ namespace mml2vgmIDE
             }
             catch { }
 
-            return lstFile;
         }
 
         private List<Tuple<enmInstType, string, string>> GetInsts(string file)
@@ -110,10 +112,11 @@ namespace mml2vgmIDE
             try
             {
                 string stPath = System.Windows.Forms.Application.StartupPath;
-                Core.Mml2vgm mv = new Core.Mml2vgm(srcFn, "", stPath, Disp);
+                Core.Mml2vgm mv = new Core.Mml2vgm(null, srcFn, "", stPath, Disp);
                 mv.isIDE = true;
                 if (mv.Start_Analyze() != 0) return null;
 
+                int renban = 0;
                 //inst FM
                 Dictionary<int, Tuple<string, byte[]>> instFM = mv.desVGM.instFM;
                 foreach (int num in instFM.Keys)
@@ -121,11 +124,114 @@ namespace mml2vgmIDE
                     if (instFM[num].Item2.Length == 47)
                     {
                         string name = instFM[num].Item1;
+                        if (string.IsNullOrEmpty(name))
+                        {
+                            name = string.Format("OPN instrument noname {0}", renban++);
+                        }
                         string str = GetInstrumentGwiFmString(num, name, instFM[num].Item2);
                         if (!string.IsNullOrEmpty(str))
                         {
                             ret.Add(new Tuple<enmInstType, string, string>(enmInstType.FM_N, Path.Combine(srcFn, name).Replace(baseDir, ""), str));
                         }
+                    }
+                    else
+                    {
+                        ;
+                    }
+                }
+
+                //inst OPM
+                Dictionary<int, Tuple<string, byte[]>> instOPM = mv.desVGM.instOPM;
+                foreach (int num in instOPM.Keys)
+                {
+                    if (instOPM[num].Item2.Length == 47)
+                    {
+                        string name = instOPM[num].Item1;
+                        if (string.IsNullOrEmpty(name))
+                        {
+                            name = string.Format("OPM instrument noname {0}", renban++);
+                        }
+                        string str = GetInstrumentGwiFmOPMString(num, name, instOPM[num].Item2);
+                        if (!string.IsNullOrEmpty(str))
+                        {
+                            ret.Add(new Tuple<enmInstType, string, string>(enmInstType.FM_N, Path.Combine(srcFn, name).Replace(baseDir, ""), str));
+                        }
+                    }
+                    else
+                    {
+                        ;
+                    }
+                }
+
+                //inst OPL
+                Dictionary<int, Tuple<string, byte[]>> instOPL = mv.desVGM.instOPL;
+                foreach (int num in instOPL.Keys)
+                {
+                    if (instOPL[num].Item2.Length == Core.Const.OPLL_INSTRUMENT_SIZE)
+                    {
+                        string name = instOPL[num].Item1;
+                        if (string.IsNullOrEmpty(name))
+                        {
+                            name = string.Format("OPLL instrument noname {0}", renban++);
+                        }
+                        string str = GetInstrumentGwiFmOPLLString(num, name, instOPL[num].Item2);
+                        if (!string.IsNullOrEmpty(str))
+                        {
+                            ret.Add(new Tuple<enmInstType, string, string>(enmInstType.FM_L, Path.Combine(srcFn, name).Replace(baseDir, ""), str));
+                        }
+                    }
+                    else if (instOPL[num].Item2.Length == Core.Const.OPL3_INSTRUMENT_SIZE)
+                    {
+                        string name = instOPL[num].Item1;
+                        if (string.IsNullOrEmpty(name))
+                        {
+                            name = string.Format("OPL instrument noname {0}", renban++);
+                        }
+                        string str = GetInstrumentGwiFmOPLString(num, name, instOPL[num].Item2);
+                        if (!string.IsNullOrEmpty(str))
+                        {
+                            ret.Add(new Tuple<enmInstType, string, string>(enmInstType.FM_L, Path.Combine(srcFn, name).Replace(baseDir, ""), str));
+                        }
+                    }
+                    else if (instOPL[num].Item2.Length == Core.Const.OPL_OP4_INSTRUMENT_SIZE)
+                    {
+                        string name = instOPL[num].Item1;
+                        if (string.IsNullOrEmpty(name))
+                        {
+                            name = string.Format("OPL4 4OP instrument noname {0}", renban++);
+                        }
+                        string str = GetInstrumentGwiFmOPL4String(num, name, instOPL[num].Item2);
+                        if (!string.IsNullOrEmpty(str))
+                        {
+                            ret.Add(new Tuple<enmInstType, string, string>(enmInstType.FM_L, Path.Combine(srcFn, name).Replace(baseDir, ""), str));
+                        }
+                    }
+                    else
+                    {
+                        ;
+                    }
+                }
+
+                //inst WF
+                Dictionary<int, Tuple<string, byte[]>> instWF = mv.desVGM.instWF;
+                foreach (int num in instWF.Keys)
+                {
+                    if (instWF[num].Item2.Length == 33)
+                    {
+                        string name = instWF[num].Item1;
+                        if (string.IsNullOrEmpty(name))
+                        {
+                            name = string.Format("HuC instrument noname {0}", renban++);
+                        }
+                        string str = GetInstrumentGwiWFString(num, name, instWF[num].Item2);
+                        if (!string.IsNullOrEmpty(str))
+                        {
+                            ret.Add(new Tuple<enmInstType, string, string>(enmInstType.FM_M, Path.Combine(srcFn, name).Replace(baseDir, ""), str));
+                        }
+                    }
+                    else
+                    {
+                        ;
                     }
                 }
 
@@ -134,6 +240,10 @@ namespace mml2vgmIDE
                 foreach (int num in instOPNA2WFS.Keys)
                 {
                     string name = instOPNA2WFS[num].Item1;
+                    if (string.IsNullOrEmpty(name))
+                    {
+                        name = string.Format("OPNA2 SSG WF instrument noname {0}", renban++);
+                    }
                     string str = GetInstrumentGwiWfsString(num, name, instOPNA2WFS[num].Item2);
 
                     if (!string.IsNullOrEmpty(str))
@@ -182,6 +292,135 @@ namespace mml2vgmIDE
 
         }
 
+        private string GetInstrumentGwiFmOPMString(int num, string name, byte[] val)
+        {
+
+            string[] line = new string[5];
+            for (int i = 0; i < 4; i++)
+            {
+                line[i] = "";
+                for (int j = 0; j < 11; j++)
+                {
+                    line[i] += string.Format("{0:D3} ", val[i * 11 + j + 1]);
+                }
+            }
+            line[4] = string.Format("{0:D3} {1:D3}", val[45], val[46]);
+
+            return string.Format(
+@"'@ M {6} ""{0}""
+   AR  DR  SR  RR  SL  TL  KS  ML  DT1 DT2 AME
+'@ {1}
+'@ {2}
+'@ {3}
+'@ {4}
+   AL  FB
+'@ {5}
+", name + add, line[0], line[1], line[2], line[3], line[4], num);
+
+        }
+
+        private string GetInstrumentGwiFmOPLLString(int num, string name, byte[] val)
+        {
+
+            string[] line = new string[3];
+            for (int i = 0; i < 2; i++)
+            {
+                line[i] = "";
+                for (int j = 0; j < 11; j++)
+                {
+                    line[i] += string.Format("{0:D3} ", val[i * 11 + j + 1]);
+                }
+            }
+            line[2] = string.Format("{0:D3} {1:D3}", val[23], val[24]);
+
+            return string.Format(
+@"'@ LL {4} ""{0}""
+   AR  DR  SL  RR  KL  MT  AM  VB  EG  KR  DT
+'@ {1}
+'@ {2}
+   TL  FB
+'@ {3}
+", name + add, line[0], line[1], line[2], num);
+
+        }
+
+        private string GetInstrumentGwiFmOPLString(int num, string name, byte[] val)
+        {
+
+            string[] line = new string[3];
+            for (int i = 0; i < 2; i++)
+            {
+                line[i] = "";
+                for (int j = 0; j < 12; j++)
+                {
+                    line[i] += string.Format("{0:D3} ", val[i * 12 + j + 1]);
+                }
+            }
+            line[2] = string.Format("{0:D3} {1:D3}", val[25], val[26]);
+
+            return string.Format(
+@"'@ L {4} ""{0}""
+   AR  DR  SL  RR  KSL TL  MT  AM  VIB EGT KSR WS
+'@ {1}
+'@ {2}
+   AL  FB
+'@ {3}
+", name + add, line[0], line[1], line[2], num);
+
+        }
+
+        private string GetInstrumentGwiFmOPL4String(int num, string name, byte[] val)
+        {
+
+            string[] line = new string[5];
+            for (int i = 0; i < 4; i++)
+            {
+                line[i] = "";
+                for (int j = 0; j < 12; j++)
+                {
+                    line[i] += string.Format("{0:D3} ", val[i * 12 + j + 1]);
+                }
+            }
+            line[4] = string.Format("{0:D3} {1:D3} {2:D3}", val[49], val[50], val[51]);
+
+            return string.Format(
+@"'@ L4 {6} ""{0}""
+   AR  DR  SL  RR  KSL TL  MT  AM  VIB EGT KSR WS
+'@ {1}
+'@ {2}
+'@ {3}
+'@ {4}
+   CNT1 CNT2 FB
+'@ {5}
+", name + add, line[0], line[1], line[2], line[3], line[4], num);
+
+        }
+
+        private string GetInstrumentGwiWFString(int num, string name, byte[] val)
+        {
+
+            string[] line = new string[5];
+            for (int i = 0; i < 4; i++)
+            {
+                line[i] = "";
+                for (int j = 0; j < 8; j++)
+                {
+                    line[i] += string.Format("{0:D2} ", val[i * 8 + j + 1]);
+                }
+            }
+            line[4] = string.Format("{0:D3}", val[32]);
+
+            return string.Format(
+@"'@ H {5} ""{0}""
+   +0 +1 +2 +3 +4 +5 +6 +7
+'@ {1}
+'@ {2}
+'@ {3}
+'@ {4}
+", name + add, line[0], line[1], line[2], line[3], line[4]);
+
+        }
+
         private string GetInstrumentGwiWfsString(int num, string name, byte[] val)
         {
 
@@ -210,7 +449,7 @@ namespace mml2vgmIDE
         private List<Tuple<enmInstType, string, string>> GetInstsAtMuc(string srcFn)
         {
             List<Tuple<enmInstType, string, string>> ret = new List<Tuple<enmInstType, string, string>>();
-
+            int renban = 0;
             try
             {
                 string[] lin = File.ReadAllText(srcFn, Encoding.GetEncoding(932)).Split(new string[] { "\r\n" }, StringSplitOptions.None);
@@ -328,7 +567,7 @@ namespace mml2vgmIDE
 
                     if (string.IsNullOrEmpty(name))
                     {
-                        name = string.Format("{0}_{1}", Path.GetFileName(srcFn), voiceNum);
+                        name = string.Format("{0}_{1}", Path.GetFileName(srcFn), renban++);
                     }
 
                     string sdat = string.Format(
@@ -342,7 +581,6 @@ namespace mml2vgmIDE
 '@ {5}
 ", name + add, line[0], line[1], line[2], line[3], line[4], voiceNum);
                     //Console.WriteLine("{0}",sdat);
-
 
                     ret.Add(new Tuple<enmInstType, string, string>(enmInstType.FM_N, Path.Combine(srcFn, name).Replace(baseDir, ""), sdat));
                 }

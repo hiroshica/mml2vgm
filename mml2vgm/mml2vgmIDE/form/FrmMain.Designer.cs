@@ -50,6 +50,7 @@
             this.tssbStop = new System.Windows.Forms.ToolStripSplitButton();
             this.tssbSlow = new System.Windows.Forms.ToolStripSplitButton();
             this.tssbFast = new System.Windows.Forms.ToolStripSplitButton();
+            this.tssbSien = new System.Windows.Forms.ToolStripSplitButton();
             this.tssbMIDIKbd = new System.Windows.Forms.ToolStripSplitButton();
             this.menuStrip1 = new System.Windows.Forms.MenuStrip();
             this.TsmiFile = new System.Windows.Forms.ToolStripMenuItem();
@@ -85,6 +86,7 @@
             this.TsmiShowErrorList = new System.Windows.Forms.ToolStripMenuItem();
             this.TsmiShowLog = new System.Windows.Forms.ToolStripMenuItem();
             this.TsmiShowLyrics = new System.Windows.Forms.ToolStripMenuItem();
+            this.TsmiShowSien = new System.Windows.Forms.ToolStripMenuItem();
             this.TsmiShowMixer = new System.Windows.Forms.ToolStripMenuItem();
             this.TsmiShowMIDIKbd = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator3 = new System.Windows.Forms.ToolStripSeparator();
@@ -149,6 +151,7 @@
             this.tssbPause,
             this.tssbStop,
             this.tssbSlow,
+            this.tssbSien,
             this.tssbFast,
             this.tssbMIDIKbd});
             resources.ApplyResources(this.statusStrip1, "statusStrip1");
@@ -272,13 +275,19 @@
             this.tssbFast.Name = "tssbFast";
             this.tssbFast.ButtonClick += new System.EventHandler(this.TssbFast_ButtonClick);
             // 
+            // tssbSien
+            // 
+            this.tssbSien.DropDownButtonWidth = 0;
+            this.tssbSien.Image = global::mml2vgmIDE.Properties.Resources.F12;
+            resources.ApplyResources(this.tssbSien, "tssbSien");
+            this.tssbSien.Name = "tssbSien";
+            // 
             // tssbMIDIKbd
             // 
             this.tssbMIDIKbd.DropDownButtonWidth = 0;
             this.tssbMIDIKbd.Image = global::mml2vgmIDE.Properties.Resources.F12;
             resources.ApplyResources(this.tssbMIDIKbd, "tssbMIDIKbd");
             this.tssbMIDIKbd.Name = "tssbMIDIKbd";
-            this.tssbMIDIKbd.ButtonClick += new System.EventHandler(this.TssbMIDIKbd_ButtonClick);
             // 
             // menuStrip1
             // 
@@ -488,6 +497,7 @@
             this.TsmiShowErrorList,
             this.TsmiShowLog,
             this.TsmiShowLyrics,
+            this.TsmiShowSien,
             this.TsmiShowMixer,
             this.TsmiShowMIDIKbd,
             this.toolStripSeparator3,
@@ -524,6 +534,12 @@
             this.TsmiShowLyrics.Name = "TsmiShowLyrics";
             resources.ApplyResources(this.TsmiShowLyrics, "TsmiShowLyrics");
             this.TsmiShowLyrics.Click += new System.EventHandler(this.TsmiShowLyrics_Click);
+            // 
+            // TsmiShowSien
+            // 
+            this.TsmiShowSien.Name = "TsmiShowSien";
+            resources.ApplyResources(this.TsmiShowSien, "TsmiShowSien");
+            this.TsmiShowSien.Click += new System.EventHandler(this.TsmiShowSien_Click);
             // 
             // TsmiShowMixer
             // 
@@ -807,6 +823,8 @@
         private System.Windows.Forms.ToolStripMenuItem tsmiExport_MuctoD88;
         private System.Windows.Forms.ToolStripMenuItem tsmiExport_toWaveFile;
         private System.Windows.Forms.ToolStripMenuItem tsmiExport_toMidiFile;
+        private System.Windows.Forms.ToolStripSplitButton tssbSien;
+        private System.Windows.Forms.ToolStripMenuItem TsmiShowSien;
     }
 }
 

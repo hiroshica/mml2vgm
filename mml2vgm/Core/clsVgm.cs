@@ -41,6 +41,8 @@ namespace Core
 
 
         public Dictionary<int, Tuple<string, byte[]>> instFM = new Dictionary<int, Tuple<string, byte[]>>();
+        public Dictionary<int, Tuple<string, byte[]>> instOPM = new Dictionary<int, Tuple<string, byte[]>>();
+        public Dictionary<int, Tuple<string, byte[]>> instOPL = new Dictionary<int, Tuple<string, byte[]>>();
         public Dictionary<int, Tuple<string, int[]>> instENV = new Dictionary<int, Tuple<string, int[]>>();
         public Dictionary<int, Tuple<string, clsPcm>> instPCM = new Dictionary<int, Tuple<string, clsPcm>>();
         public List<clsPcmDatSeq> instPCMDatSeq = new List<clsPcmDatSeq>();
@@ -59,11 +61,19 @@ namespace Core
         };
         public Dictionary<string, Line> aliesData = new Dictionary<string, Line>();
 
-        private int instrumentCounter = -1;
-        private string instrumentName;
-        private byte[] instrumentBufCache = new byte[Const.INSTRUMENT_SIZE];
         private int toneDoublerCounter = -1;
         private List<int> toneDoublerBufCache = new List<int>();
+
+        private string instrumentName;
+
+        private int instrumentCounter = -1;
+        private byte[] instrumentBufCache = null;// new byte[Const.INSTRUMENT_SIZE];
+
+        private int opmInstrumentCounter = -1;
+        private byte[] opmInstrumentBufCache = null;
+
+        private int oplInstrumentCounter = -1;
+        private byte[] oplInstrumentBufCache = null;
 
         private int wfInstrumentCounter = -1;
         private byte[] wfInstrumentBufCache = null;
@@ -543,7 +553,7 @@ namespace Core
                             msg.get("E01000")
                             , p.Substring(0, 2).Trim() + int.Parse(p.Substring(2, 2)).ToString()
                             ),
-                            new LinePos("-")
+                            new LinePos(null,"-")
                             );
                         flg = false;
                     }
@@ -565,6 +575,20 @@ namespace Core
                     msgBox.setErrMsg(string.Format(msg.get("E01022"), "FM"), null);
                 else
                     msgBox.setErrMsg(string.Format(msg.get("E01023"), "FM"), line.Lp);
+            }
+            if (opmInstrumentCounter != -1)
+            {
+                if (line == null)
+                    msgBox.setErrMsg(string.Format(msg.get("E01022"), "OPM"), null);
+                else
+                    msgBox.setErrMsg(string.Format(msg.get("E01023"), "OPM"), line.Lp);
+            }
+            if (oplInstrumentCounter != -1)
+            {
+                if (line == null)
+                    msgBox.setErrMsg(string.Format(msg.get("E01022"), "OPL"), null);
+                else
+                    msgBox.setErrMsg(string.Format(msg.get("E01023"), "OPL"), line.Lp);
             }
             // WaveFormの音色を定義中の場合
             if (wfInstrumentCounter != -1)
@@ -626,6 +650,18 @@ namespace Core
             if (instrumentCounter != -1)
             {
                 return SetInstrument(line);
+            }
+
+            // OPMの音色を定義中の場合
+            if (opmInstrumentCounter != -1)
+            {
+                return SetOpmInstrument(line);
+            }
+
+            // OPLの音色を定義中の場合
+            if (oplInstrumentCounter != -1)
+            {
+                return SetOplInstrument(line);
             }
 
             // WaveFormの音色を定義中の場合
@@ -718,24 +754,24 @@ namespace Core
                     return 0;
 
                 case 'M':
-                    instrumentBufCache = new byte[Const.INSTRUMENT_SIZE];
-                    instrumentCounter = 0;
-                    SetInstrument(line);
+                    opmInstrumentBufCache = new byte[Const.OPM_INSTRUMENT_SIZE];
+                    opmInstrumentCounter = 0;
+                    SetOpmInstrument(line);
                     return 0;
 
                 case 'L':
                     string val = buf.ToUpper();
                     if (val.Length > 1 && val[1] == 'L')
-                        instrumentBufCache = new byte[Const.OPLL_INSTRUMENT_SIZE];
+                        oplInstrumentBufCache = new byte[Const.OPLL_INSTRUMENT_SIZE];
                     else if (val.Length > 1 && val[1] == '4')
                     {
-                        instrumentBufCache = new byte[Const.OPL_OP4_INSTRUMENT_SIZE];
+                        oplInstrumentBufCache = new byte[Const.OPL_OP4_INSTRUMENT_SIZE];
                         line.Txt = val.Substring(2);
                     }
                     else
-                        instrumentBufCache = new byte[Const.OPL3_INSTRUMENT_SIZE];
-                    instrumentCounter = 0;
-                    SetInstrument(line);
+                        oplInstrumentBufCache = new byte[Const.OPL3_INSTRUMENT_SIZE];
+                    oplInstrumentCounter = 0;
+                    SetOplInstrument(line);
                     return 0;
 
                 case 'A':
@@ -1593,6 +1629,7 @@ namespace Core
                 aliesData.Remove(name);
             }
             Line l = new Line(new LinePos(
+                line.Lp.document,
                 line.Lp.srcMMLID,
                 line.Lp.row,
                 line.Lp.col,
@@ -1645,6 +1682,7 @@ namespace Core
                     partData[n].Add(p, new List<List<Line>>());
                 }
                 Line l = new Line(new LinePos(
+                    line.Lp.document,
                     line.Lp.srcMMLID,
                     line.Lp.row,
                     line.Lp.col,
@@ -1686,8 +1724,8 @@ namespace Core
 
                     if (instrumentBufCache.Length == Const.INSTRUMENT_SIZE)
                     {
-                        //M
-                        instFM.Add(instrumentBufCache[0],new Tuple<string, byte[]>(instrumentName, instrumentBufCache));
+                        //OPN
+                        instFM.Add(instrumentBufCache[0], new Tuple<string, byte[]>(instrumentName, instrumentBufCache));
                     }
                     else if (instrumentBufCache.Length == Const.OPLL_INSTRUMENT_SIZE)
                     {
@@ -1714,6 +1752,84 @@ namespace Core
                     }
 
                     instrumentCounter = -1;
+                }
+            }
+            catch
+            {
+                msgBox.setErrMsg(msg.get("E01012"), line.Lp);
+            }
+
+            return 0;
+        }
+
+        private int SetOpmInstrument(Line line)
+        {
+
+            try
+            {
+                string name = "";
+                opmInstrumentCounter = GetNums(opmInstrumentBufCache, opmInstrumentCounter, CutComment(line.Txt).Substring(1).TrimStart(), ref name, line);
+                if (string.IsNullOrEmpty(instrumentName)) instrumentName = name;//音色名
+
+                if (opmInstrumentCounter == opmInstrumentBufCache.Length)
+                {
+                    //すでに定義済みの場合はいったん削除する(後に定義されたものが優先)
+                    if (instOPM.ContainsKey(opmInstrumentBufCache[0]))
+                    {
+                        instOPM.Remove(opmInstrumentBufCache[0]);
+                    }
+
+
+                    if (opmInstrumentBufCache.Length == Const.OPM_INSTRUMENT_SIZE)
+                    {
+                        //M
+                        instOPM.Add(opmInstrumentBufCache[0], new Tuple<string, byte[]>(instrumentName, opmInstrumentBufCache));
+                    }
+
+                    opmInstrumentCounter = -1;
+                }
+            }
+            catch
+            {
+                msgBox.setErrMsg(msg.get("E01012"), line.Lp);
+            }
+
+            return 0;
+        }
+
+        private int SetOplInstrument(Line line)
+        {
+
+            try
+            {
+                string name = "";
+                oplInstrumentCounter = GetNums(oplInstrumentBufCache, oplInstrumentCounter, CutComment(line.Txt).Substring(1).TrimStart(), ref name, line);
+                if (string.IsNullOrEmpty(instrumentName)) instrumentName = name;//音色名
+
+                if (oplInstrumentCounter == oplInstrumentBufCache.Length)
+                {
+                    //すでに定義済みの場合はいったん削除する(後に定義されたものが優先)
+                    if (instOPL.ContainsKey(oplInstrumentBufCache[0]))
+                    {
+                        instOPL.Remove(oplInstrumentBufCache[0]);
+                    }
+
+
+                    if (oplInstrumentBufCache.Length == Const.OPLL_INSTRUMENT_SIZE)
+                    {
+                        //OPL
+                        instOPL.Add(oplInstrumentBufCache[0], new Tuple<string, byte[]>(instrumentName, oplInstrumentBufCache));
+                    }
+                    else if (oplInstrumentBufCache.Length == Const.OPL3_INSTRUMENT_SIZE)
+                    {
+                        instOPL.Add(oplInstrumentBufCache[0], new Tuple<string, byte[]>(instrumentName, oplInstrumentBufCache));
+                    }
+                    else if (oplInstrumentBufCache.Length == Const.OPL_OP4_INSTRUMENT_SIZE)
+                    {
+                        instOPL.Add(oplInstrumentBufCache[0], new Tuple<string, byte[]>(instrumentName, oplInstrumentBufCache));
+                    }
+
+                    oplInstrumentCounter = -1;
                 }
             }
             catch
@@ -3636,7 +3752,7 @@ namespace Core
                 C352 c = c352[0] != null ? c352[0] : c352[1];
                 Common.SetLE32(dat, 0xdc, (uint)c.Frequency | (uint)(useC352_S == 0 ? 0 : 0x40000000));
                 if (c != null)
-                    dat[0xd6] = new outDatum(enmMMLType.unknown, null, null, (byte)0);
+                    dat[0xd6] = new outDatum(enmMMLType.unknown, null, null, (byte)(c.C352Divider/4));
             }
             if (info.Version >= 1.51f && useAY8910 != 0)
             {
@@ -4271,7 +4387,7 @@ namespace Core
 
                         if (des.Count - frameDummyCounter - framePtr > 256)
                         {
-                            msgBox.setWrnMsg(string.Format(msg.get("E01015"), frameCnt, des.Count - frameDummyCounter - framePtr), new LinePos("-"));
+                            msgBox.setWrnMsg(string.Format(msg.get("E01015"), frameCnt, des.Count - frameDummyCounter - framePtr), new LinePos(null,"-"));
                         }
                         framePtr = des.Count;
                         frameDummyCounter = 0;
@@ -4464,7 +4580,7 @@ namespace Core
 
                         break;
                     default:
-                        msgBox.setErrMsg(string.Format("Unknown command[{0:X}]", cmd.val), new LinePos("-"));
+                        msgBox.setErrMsg(string.Format("Unknown command[{0:X}]", cmd.val), new LinePos(null,"-"));
                         return null;
                 }
             }
@@ -5156,7 +5272,7 @@ namespace Core
                     page.dataEnd = true;
                     page.enableInterrupt = true;
                     page.waitCounter = -1;
-                    if (mml.args[0] != "partEnd")
+                    if ((string)mml.args[0] != "partEnd")
                     {
                         compileEnd=true;
                     }
@@ -5289,6 +5405,11 @@ namespace Core
                 case enmMMLType.PhaseReset:
                     log.Write("PhaseReset");
                     page.chip.CmdPhaseReset(page, mml);
+                    page.mmlPos++;
+                    break;
+                case enmMMLType.PageDirectSend:
+                    log.Write("PageDirectSend");
+                    page.chip.CmdPageDirectSend(page, mml);
                     page.mmlPos++;
                     break;
                 case enmMMLType.HardEnvelope:
@@ -5708,6 +5829,7 @@ namespace Core
                         if (mml.line != null && mml.line.Lp != null)
                         {
                             od.linePos = new LinePos(
+                                mml.line.Lp.document,
                                 mml.line.Lp.srcMMLID,
                                 mml.line.Lp.row,
                                 mml.line.Lp.col,
@@ -5736,6 +5858,7 @@ namespace Core
                     if (mml.line != null && mml.line.Lp != null)
                     {
                         od.linePos = new LinePos(
+                            mml.line.Lp.document,
                             mml.line.Lp.srcMMLID,
                             mml.line.Lp.row,
                             mml.line.Lp.col,
@@ -5768,6 +5891,7 @@ namespace Core
                         if (od.linePos != null)
                         {
                             o.linePos = new LinePos(
+                                od.linePos.document,
                                 od.linePos.srcMMLID,
                                 od.linePos.row,
                                 od.linePos.col,
@@ -5793,6 +5917,7 @@ namespace Core
                     if (od.linePos != null)
                     {
                         o.linePos = new LinePos(
+                            od.linePos.document,
                             od.linePos.srcMMLID,
                             od.linePos.row,
                             od.linePos.col,
