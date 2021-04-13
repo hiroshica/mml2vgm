@@ -803,7 +803,7 @@ namespace Core
                 //msgBox.setErrMsg(msg.get("E05006"), mml.line.Lp);
                 return;
             }
-            n = Common.CheckRange(n, 1, page.MaxVolume);
+            n = Common.CheckRange(n, 0, page.MaxVolume);
             mml.type = enmMMLType.VolumeUp;
             mml.args = new List<object>();
             mml.args.Add(n);
@@ -822,7 +822,7 @@ namespace Core
                 //msgBox.setErrMsg(msg.get("E05007"), mml.line.Lp);
                 //n = 10;
             }
-            n = Common.CheckRange(n, 1, page.MaxVolume);
+            n = Common.CheckRange(n, 0, page.MaxVolume);
             mml.type = enmMMLType.VolumeDown;
             mml.args = new List<object>();
             mml.args.Add(n);
@@ -1484,13 +1484,21 @@ namespace Core
         {
             pw.incPos(page);
             char c = pw.getChar(page);
-            pw.incPos(page);
             if (c != 'o' && c != 'f')
             {
-                msgBox.setErrMsg(msg.get("E05031"), mml.line.Lp);
+                if (!pw.getNum(page, out int num))
+                {
+                    pw.incPos(page);
+                    msgBox.setErrMsg(msg.get("E05031"), mml.line.Lp);
+                    return;
+                }
+                mml.type = enmMMLType.SusOnOff;
+                mml.args = new List<object>();
+                mml.args.Add(num);
                 return;
             }
 
+            pw.incPos(page);
             mml.type = enmMMLType.SusOnOff;
             mml.args = new List<object>();
             mml.args.Add(c);

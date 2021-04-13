@@ -639,6 +639,9 @@ namespace Core
         public Dictionary<int, CommandArpeggio> commandArpeggio = new Dictionary<int, CommandArpeggio>();
         public int beforeInstrument { get; set; } = -1;
         public bool DirectSend { get; internal set; } = false;
+        public int sync { get; internal set; }
+        public int beforeNoise { get; internal set; }
+        public int beforeMixer { get; internal set; }
 
         public partPage(partPage sharedPg)
         {

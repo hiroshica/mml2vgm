@@ -5,25 +5,23 @@ using System.Linq;
 
 namespace mml2vgmIDE.MMLParameter
 {
-    public class K051649 : Instrument
+    public class YMF271 : Instrument
     {
-        public K051649(SoundManager.Chip chip, Setting setting) : base(5, chip, setting)
+        public YMF271(SoundManager.Chip chip, Setting setting) : base(18 + 5 + 24, chip,setting)
         {
-            for (int i = 0; i < 5; i++)
+            for (int i = 0; i < 18 + 5 + 24; i++)
             {
-                vol[i] = 15;
+                vol[i] = 63;
                 beforeTie[i] = false;
             }
         }
 
-        public override string Name => "K051649";
+        public override string Name => "YMF271";
 
-        protected override void SetInstrument(outDatum od, int ch, int cc)
+        protected override void SetPan(outDatum od, int ch, int cc)
         {
-            if ((char)od.args[0] == 'E')
-                envelope[od.linePos.ch] = ((int)od.args[1]).ToString();
-            else
-                base.SetInstrument(od, ch, cc);
+            int n = (int)od.args[0];
+            pan[od.linePos.ch] = n == 0 ? "-" : (n == 1 ? "Right" : (n == 2 ? "Left" : "Center"));
         }
 
         protected override void SetNote(outDatum od, int ch, int cc)
@@ -34,11 +32,13 @@ namespace mml2vgmIDE.MMLParameter
             notecmd[od.linePos.ch] = string.Format("o{0}{1}{2}", octave[od.linePos.ch], nt.cmd, f);
             length[od.linePos.ch] = string.Format("{0:0.##}(#{1:d})", 1.0 * cc / nt.length, nt.length);
 
+            //log.Write(notecmd[od.linePos.ch]);
+
             if (!beforeTie[od.linePos.ch])
             {
                 if (vol[od.linePos.ch] != null)
                 {
-                    keyOnMeter[od.linePos.ch] = (int)(256.0 / 16.0 * vol[od.linePos.ch]);
+                    keyOnMeter[od.linePos.ch] = (int)(256.0 / 63.0 * vol[od.linePos.ch]);
                 }
             }
             beforeTie[od.linePos.ch] = nt.tieSw;

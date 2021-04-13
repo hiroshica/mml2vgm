@@ -781,7 +781,7 @@ namespace Core
                     || parent.instCommandArp[ca.Num].Length < 2
                     )
                 {
-                    ca.Num = -1;
+                    //ca.Num = -1;
                     continue;
                 }
 
@@ -1201,7 +1201,7 @@ namespace Core
                         msgBox.setErrMsg(msg.get("E10042"), mml.line.Lp);
                         page.commandArpeggio[n1].Sw = false;
                     }
-                    if (parent.instCommandArp[n1].Length < 3)
+                    if (parent.instCommandArp[page.commandArpeggio[n1].Num].Length < 3)
                     {
                         //ARPの定義がない場合はエラー
                         msgBox.setErrMsg(msg.get("E10042"), mml.line.Lp);
@@ -1223,8 +1223,6 @@ namespace Core
                     if (page.commandArpeggio[n1].Sync != 0) page.commandArpeggio[n1].Ptr = -1;
                     break;
                 case "CA":
-                    page.commandArpeggio[n1].Sw = true;
-                    int n2 = (int)mml.args[2];
                     if (!(mml.args[2] is int))
                     {
                         //数値指定ではない場合はエラー
@@ -1232,6 +1230,8 @@ namespace Core
                         page.commandArpeggio[n1].Sw = false;
                         return;
                     }
+                    page.commandArpeggio[n1].Sw = true;
+                    int n2 = (int)mml.args[2];
 
                     if (!parent.instCommandArp.ContainsKey(n2))
                     {
@@ -2070,7 +2070,7 @@ namespace Core
                         if (mml.line != null && mml.line.Lp != null)
                         {
                             od.linePos = new LinePos(
-                                null, 
+                                mml.line.Lp.document,
                                 mml.line.Lp.srcMMLID,
                                 mml.line.Lp.row,
                                 mml.line.Lp.col,
