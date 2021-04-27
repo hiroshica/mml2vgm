@@ -1,4 +1,53 @@
 更新履歴
+TAG410 2021/04/25 6th
+  IDE:エクスポート:WAV:ループ回数を設定できるようオプション項目追加
+
+TAG409 2021/04/25 5th
+  Core:MDSound差し替え
+  リズム音源用ファイル(2608_xx.wav)を読み込む前にchipIDを付加したファイルを探すようにしています。
+  具体的なファイル名は1枚目のOPNAの場合は 2608_xx_0.wav 、2枚目のOPNAの場合は 2608_xx_1.wav になります。
+  (ゆきにゃんさん仕様w)
+
+TAG408 2021/04/25 4th
+  IDE:mucomDotNET:mucファイルのあるフォルダのOPNAのリズム音源ファイルを参照するように修正(ゆきにゃんさん仕様w)
+
+TAG407 2021/04/25 3rd
+  IDE:mucomDotNET差し替え
+
+TAG406 2021/04/25 2nd
+  Core:MDSound差し替え
+  IDE:FM:ALGコンストラクションフラグのセットが正しくできていなかったのを修正
+
+TAG405 2021/04/25
+  Core:MDSound差し替え
+  IDE:パラメータ表示:エンベロープ番号列にSSGの音色番号の値が混ざって表示されていたのを修正
+
+TAG404 2021/04/23
+  IDE:mucomDotNET差し替え
+  IDE:mucomDotNET向けパラメータ表示ちょっとだけ対応
+
+TAG403 2021/04/22 3rd
+  IDE:mucomDotNET差し替え
+
+TAG402 2021/04/22 2nd
+  IDE:mucomDotNET差し替え
+
+TAG401 2021/04/22
+  IDE:mucomDotNET:OPNBにPCMデータ以外の初期化向けのデータが送られていなかったのを修正
+  IDE:mucomDotNET:ハイライターのタグ判定を修正
+
+TAG400 2021/04/21
+  IDE:MDSound差し替え(YM2609のヘロヘロ音向けの修正)
+
+TAG399 2021/04/20 2nd
+  IDE:パラメータ表示:範囲チェック強化
+
+TAG398 2021/04/20
+  IDE:mucomDotNET差し替え
+
+TAG397 2021/04/18
+  IDE:mucomDotNET4Chip暫定対応
+
 TAG396 2021/04/11
   Core:CAR:HuC:音色を切り替えた時、アルペジオの効果を無視した音量値を出力していたのを修正
 

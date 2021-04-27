@@ -182,7 +182,7 @@ namespace mml2vgmIDE.MMLParameter
                         SetupPPZ8(od);
                         break;
                     default:
-                        Console.WriteLine("{0}", od.linePos.chip);
+                        Console.WriteLine("Warning Unknown Chip {0}", od.linePos.chip);
                         break;
                 }
             }
@@ -299,7 +299,17 @@ namespace mml2vgmIDE.MMLParameter
                 chip = Audio.chipRegister.YM2610[zChip.Index];
                 //chipIndex = zChip.Index;
             }
-            YM2610B opnb = new YM2610B(chip, setting);
+            Instrument opnb;// = new YM2610B(chip, setting);
+            switch (mmlFileFormat)
+            {
+                case EnmMmlFileFormat.GWI:
+                default:
+                    opnb = new YM2610B(chip, setting);
+                    break;
+                case EnmMmlFileFormat.MUC:
+                    opnb = new YM2610B_mucom(chip, setting);
+                    break;
+            }
             YM2610B.Add(opnb);
             dicInstAdd(opnb, od.linePos.chipIndex, od.linePos.chipNumber);
             instsAdd(opnb, od.linePos.chipIndex, od.linePos.chipNumber);
